@@ -1,0 +1,41 @@
+{
+  "name": "tomwatson.qa",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "version": "cross-env NEXT_PUBLIC_PACKAGE_VERSION=$(npm pkg get version | sed 's/\"//g') NEXT_PUBLIC_BUILD_DATE=$(date '+%Y-%m-%d') NEXT_PUBLIC_BUILD_TIME=$(date '+%H:%M:%S')",
+    "dev": "npm run version next dev",
+    "build": "npm run version next build",
+    "start": "next start",
+    "lint": "tsc --noEmit && next lint",
+    "deploy:patch": "npm run lint && grunt bump:patch",
+    "deploy:minor": "npm run lint && grunt bump:minor",
+    "deploy:major": "npm run lint && grunt bump:major"
+  },
+  "dependencies": {
+    "@prismicio/client": "^6.7.1",
+    "@prismicio/next": "^1.0.2",
+    "@prismicio/react": "^2.5.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "next": "13.0.6",
+    "prettier": "^2.8.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "styled-components": "^5.3.6"
+  },
+  "devDependencies": {
+    "@prismicio/types": "^0.2.4",
+    "@types/node": "18.11.10",
+    "@types/react": "18.0.25",
+    "@types/react-dom": "18.0.9",
+    "@types/styled-components": "^5.1.26",
+    "cross-env": "^7.0.3",
+    "eslint": "8.28.0",
+    "eslint-config-next": "13.0.6",
+    "grunt-bump": "^0.8.0",
+    "typescript": "4.9.3"
+  }
+}
