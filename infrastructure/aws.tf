@@ -15,7 +15,7 @@ resource "aws_s3_bucket" "build" {
 }
 
 resource "aws_s3_bucket_acl" "build_acl" {
-  bucket = aws_s3_bucket.build.id
+  bucket = aws_s3_bucket.build[each.key].id
   acl    = "private"
 }
 
@@ -27,6 +27,6 @@ resource "aws_s3_bucket" "codepipeline" {
 }
 
 resource "aws_s3_bucket_acl" "codepipeline_acl" {
-  bucket = aws_s3_bucket.codepipeline.id
+  bucket = aws_s3_bucket.codepipeline[each.key].id
   acl    = "private"
 }
