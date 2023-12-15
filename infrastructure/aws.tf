@@ -15,6 +15,8 @@ resource "aws_s3_bucket" "build" {
 }
 
 resource "aws_s3_bucket_acl" "build_acl" {
+  for_each = local.build_environments
+  
   bucket = aws_s3_bucket.build[each.key].id
   acl    = "private"
 }
@@ -27,6 +29,8 @@ resource "aws_s3_bucket" "codepipeline" {
 }
 
 resource "aws_s3_bucket_acl" "codepipeline_acl" {
+  for_each = local.build_environments
+
   bucket = aws_s3_bucket.codepipeline[each.key].id
   acl    = "private"
 }
