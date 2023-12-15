@@ -11,7 +11,7 @@ locals {
 resource "aws_s3_bucket" "build" {
   for_each = local.build_environments
 
-  bucket = "${local.project_name}-build-${each.key}"
+  bucket = "${local.project_name}-${each.key}-build"
 }
 
 resource "aws_s3_bucket_ownership_controls" "build" {
@@ -36,7 +36,7 @@ resource "aws_s3_bucket_acl" "build_acl" {
 resource "aws_s3_bucket" "codepipeline" {
   for_each = local.build_environments
 
-  bucket = "${local.project_name}-codepipeline-${each.key}"
+  bucket = "${local.project_name}-${each.key}-codepipeline"
 }
 
 resource "aws_s3_bucket_ownership_controls" "codepipeline" {
