@@ -1,6 +1,6 @@
 locals {
   project_name = "tomwatsonqa-website"
-  build_environments = ["dev", "test", "staging", "production"]
+  build_environments = toset(["dev", "test", "staging", "production"])
 }
 
 ##########
@@ -9,7 +9,7 @@ locals {
 
 # Build files
 resource "aws_s3_bucket" "build" {
-  for_each = toset(local.build_environments)
+  for_each = local.build_environments
 
   bucket = "${local.project_name}-build-${each.key}"
 }
@@ -21,7 +21,7 @@ resource "aws_s3_bucket_acl" "build_acl" {
 
 # CodePipeline Artifacts
 resource "aws_s3_bucket" "codepipeline" {
-  for_each = toset(local.build_environments)
+  for_each = local.build_environments
 
   bucket = "${local.project_name}-codepipeline-${each.key}"
 }
