@@ -8,7 +8,7 @@ resource "aws_s3_bucket" "build" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "build" {
-  bucket = aws_s3_bucket.build[var.build_environment].id
+  bucket = aws_s3_bucket.build.id
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
@@ -17,7 +17,7 @@ resource "aws_s3_bucket_ownership_controls" "build" {
 resource "aws_s3_bucket_acl" "build_acl" {
   depends_on = [aws_s3_bucket_ownership_controls.build]
 
-  bucket = aws_s3_bucket.build[var.build_environment].id
+  bucket = aws_s3_bucket.build.id
   acl    = "private"
 }
 
@@ -27,7 +27,7 @@ resource "aws_s3_bucket" "codepipeline" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "codepipeline" {
-  bucket = aws_s3_bucket.codepipeline[var.build_environment].id
+  bucket = aws_s3_bucket.codepipeline.id
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
@@ -36,6 +36,6 @@ resource "aws_s3_bucket_ownership_controls" "codepipeline" {
 resource "aws_s3_bucket_acl" "codepipeline_acl" {
   depends_on = [aws_s3_bucket_ownership_controls.codepipeline]
 
-  bucket = aws_s3_bucket.codepipeline[var.build_environment].id
+  bucket = aws_s3_bucket.codepipeline.id
   acl    = "private"
 }

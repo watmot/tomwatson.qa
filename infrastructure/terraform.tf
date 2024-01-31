@@ -24,3 +24,14 @@ provider "aws" {
     }
   }
 }
+
+provider "aws" {
+  region = "us-east-1"
+  alias  = "use1"
+  default_tags {
+    tags = {
+      Project       = "tomwatsonqa-website"
+      ProvisionedBy = "terraform"
+    }
+  }
+}
