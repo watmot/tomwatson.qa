@@ -3,7 +3,12 @@ variable "project_name" {
   description = "The name of the project."
 }
 
-variable "build_environment" {
+variable "build_environments" {
+  type        = map(any)
+  description = "Array of the build environments."
+}
+
+variable "repository_id" {
   type        = string
-  description = "The website build environment the infrastructure is used for."
+  description = "ID of the GitHub repository."
 }

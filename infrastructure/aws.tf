@@ -1,7 +1,7 @@
 locals {
   domain_name        = "tomwatson.qa"
   project_name       = "tomwatsonqa-website"
-  build_environments = toset(["dev", "test", "staging", "production"])
+  build_environments = var.build_environments
 }
 
 data "aws_route53_zone" "website" {
@@ -16,10 +16,9 @@ data "aws_route53_zone" "website" {
 module "build" {
   source = "./modules/build"
 
-  for_each = local.build_environments
-
-  project_name      = local.project_name
-  build_environment = each.key
+  project_name       = local.project_name
+  build_environments = local.build_environments
+  repository_id      = var.repository_id
 }
 
 #######################
@@ -35,7 +34,7 @@ module "certificate" {
 
   for_each = local.build_environments
 
-  domain_name     = each.key != "production" ? "${each.key}.${local.domain_name}" : local.domain_name
+  domain_name     = each.value != "production" ? "${each.value}.${local.domain_name}" : local.domain_name
   route53_zone_id = data.aws_route53_zone.website.zone_id
 }
 
@@ -49,9 +48,9 @@ module "distribution" {
   for_each = local.build_environments
 
   project_name                         = local.project_name
-  domain_name                          = each.key != "production" ? "${each.key}.${local.domain_name}" : local.domain_name
-  build_environment                    = each.key
-  s3_build_bucket_regional_domain_name = module.build[each.key].s3_build_bucket_regional_domain_name
+  domain_name                          = each.value != "production" ? "${each.value}.${local.domain_name}" : local.domain_name
+  build_environment                    = each.value
+  s3_build_bucket_regional_domain_name = module.build.s3_build_bucket_regional_domain_names[each.key]
   route53_zone_id                      = data.aws_route53_zone.website.zone_id
   acm_certificate_id                   = module.certificate[each.key].acm_certificate_id
 }
