@@ -82,11 +82,35 @@ resource "aws_route53_record" "root" {
   }
 }
 
+resource "aws_route53_record" "root_AAAA" {
+  name    = var.domain_name
+  zone_id = var.route53_zone_id
+  type    = "AAAA"
+
+  alias {
+    name                   = aws_cloudfront_distribution.website.domain_name
+    zone_id                = aws_cloudfront_distribution.website.hosted_zone_id
+    evaluate_target_health = true
+  }
+}
+
 # www subdomain
 resource "aws_route53_record" "www" {
   name    = "www.${var.domain_name}"
   zone_id = var.route53_zone_id
   type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.website.domain_name
+    zone_id                = aws_cloudfront_distribution.website.hosted_zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "www_AAAA" {
+  name    = "www.${var.domain_name}"
+  zone_id = var.route53_zone_id
+  type    = "AAAA"
 
   alias {
     name                   = aws_cloudfront_distribution.website.domain_name
