@@ -63,13 +63,7 @@ resource "aws_s3_bucket_acl" "codepipeline_acl" {
 ### CodePipeline ###
 ####################
 
-# CodeStarConnection
-resource "aws_codestarconnections_connection" "website" {
-  name          = "${var.project_name}-codestar"
-  provider_type = "GitHub"
-}
-
-# CodeBuild
+# IAM
 data "aws_iam_policy_document" "assume_role" {
   statement {
     effect = "Allow"
@@ -94,12 +88,12 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
-resource "aws_iam_role" "codepipeline" {
+resource "aws_iam_role" "codepipeline_role" {
   name               = "${var.project_name}-codepipeline-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
-data "aws_iam_policy_document" "codepipeline" {
+data "aws_iam_policy_document" "codepipeline_policy" {
   dynamic "statement" {
     for_each = var.build_environments_names
 
@@ -155,11 +149,24 @@ data "aws_iam_policy_document" "codepipeline" {
 
 }
 
+resource "aws_iam_role_policy" "codepipeline_policy" {
+  name   = "${var.project_name}-codepipeline-policy"
+  role   = aws_iam_role.codepipeline_role.id
+  policy = data.aws_iam_policy_document.codepipeline_policy.json
+}
+
+# CodeStarConnection
+resource "aws_codestarconnections_connection" "website" {
+  name          = "${var.project_name}-codestar"
+  provider_type = "GitHub"
+}
+
+# CodeBuild
 resource "aws_codebuild_project" "website" {
   for_each = var.build_environments_names
 
   name         = "${var.project_name}-${each.value}-codebuild"
-  service_role = aws_iam_role.codepipeline.arn
+  service_role = aws_iam_role.codepipeline_role.arn
 
   artifacts {
     type = "CODEPIPELINE"
@@ -181,7 +188,7 @@ resource "aws_codepipeline" "website" {
   for_each = local.build_environment_branches
 
   name     = "${var.project_name}-${each.value}-codepipeline"
-  role_arn = aws_iam_role.codepipeline.arn
+  role_arn = aws_iam_role.codepipeline_role.arn
 
   artifact_store {
     location = aws_s3_bucket.codepipeline[each.value].bucket
