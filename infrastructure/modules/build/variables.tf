@@ -4,8 +4,17 @@ variable "project_name" {
 }
 
 variable "build_environments" {
-  type        = map(any)
+  type = list(object({
+    name      = string
+    run_order = number
+    branch    = string
+  }))
   description = "Array of the build environments."
+}
+
+variable "build_environments_names" {
+  type        = set(string)
+  description = "Set of names of the build environments."
 }
 
 variable "repository_id" {

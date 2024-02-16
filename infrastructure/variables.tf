@@ -4,6 +4,10 @@ variable "repository_id" {
 }
 
 variable "build_environments" {
-  type        = map(any)
+  type = list(object({
+    name      = string
+    run_order = number
+    branch    = string
+  }))
   description = "List of build environments."
 }

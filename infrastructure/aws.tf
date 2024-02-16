@@ -1,7 +1,8 @@
 locals {
-  domain_name        = "tomwatson.qa"
-  project_name       = "tomwatsonqa-website"
-  build_environments = var.build_environments
+  domain_name              = "tomwatson.qa"
+  project_name             = "tomwatsonqa-website"
+  build_environments       = var.build_environments
+  build_environments_names = toset([for env in var.build_environments : env.name])
 }
 
 data "aws_route53_zone" "website" {
@@ -16,9 +17,10 @@ data "aws_route53_zone" "website" {
 module "build" {
   source = "./modules/build"
 
-  project_name       = local.project_name
-  build_environments = local.build_environments
-  repository_id      = var.repository_id
+  project_name             = local.project_name
+  build_environments       = local.build_environments
+  build_environments_names = local.build_environments_names
+  repository_id            = var.repository_id
 }
 
 #######################
@@ -32,7 +34,7 @@ module "certificate" {
     aws = aws.use1
   }
 
-  for_each = local.build_environments
+  for_each = local.build_environments_names
 
   domain_name     = each.value != "production" ? "${each.value}.${local.domain_name}" : local.domain_name
   route53_zone_id = data.aws_route53_zone.website.zone_id
@@ -45,12 +47,12 @@ module "certificate" {
 module "distribution" {
   source = "./modules/distribution"
 
-  for_each = local.build_environments
+  for_each = local.build_environments_names
 
   project_name                         = local.project_name
   domain_name                          = each.value != "production" ? "${each.value}.${local.domain_name}" : local.domain_name
   build_environment                    = each.value
-  s3_build_bucket_regional_domain_name = module.build.s3_build_bucket_regional_domain_names[each.key]
+  s3_build_bucket_regional_domain_name = module.build.s3_build_bucket_regional_domain_names[each.value]
   route53_zone_id                      = data.aws_route53_zone.website.zone_id
-  acm_certificate_id                   = module.certificate[each.key].acm_certificate_id
+  acm_certificate_id                   = module.certificate[each.value].acm_certificate_id
 }

@@ -1,3 +1,7 @@
+locals {
+  build_environment_branches = toset([for env in var.build_environments : env.branch])
+}
+
 ##########
 ### S3 ###
 ##########
@@ -5,26 +9,26 @@
 # Build files. 
 # We create a seperate bucket for each build environment
 resource "aws_s3_bucket" "build" {
-  for_each = var.build_environments
+  for_each = var.build_environments_names
 
   bucket = "${var.project_name}-${each.value}-build"
 }
 
 resource "aws_s3_bucket_ownership_controls" "build" {
-  for_each = var.build_environments
+  for_each = var.build_environments_names
 
-  bucket = aws_s3_bucket.build[each.key].id
+  bucket = aws_s3_bucket.build[each.value].id
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
 }
 
 resource "aws_s3_bucket_acl" "build_acl" {
-  for_each = var.build_environments
+  for_each = var.build_environments_names
 
   depends_on = [aws_s3_bucket_ownership_controls.build]
 
-  bucket = aws_s3_bucket.build[each.key].id
+  bucket = aws_s3_bucket.build[each.value].id
   acl    = "private"
 }
 
@@ -32,20 +36,26 @@ resource "aws_s3_bucket_acl" "build_acl" {
 # We only need to create a single bucket for this, and it
 # will hold artifacts named relative to their env.
 resource "aws_s3_bucket" "codepipeline" {
-  bucket = "${var.project_name}-codepipeline"
+  for_each = local.build_environment_branches
+
+  bucket = "${var.project_name}-${each.value}-codepipeline"
 }
 
 resource "aws_s3_bucket_ownership_controls" "codepipeline" {
-  bucket = aws_s3_bucket.codepipeline.id
+  for_each = local.build_environment_branches
+
+  bucket = aws_s3_bucket.codepipeline[each.value].id
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
 }
 
 resource "aws_s3_bucket_acl" "codepipeline_acl" {
+  for_each = local.build_environment_branches
+
   depends_on = [aws_s3_bucket_ownership_controls.codepipeline]
 
-  bucket = aws_s3_bucket.codepipeline.id
+  bucket = aws_s3_bucket.codepipeline[each.value].id
   acl    = "private"
 }
 
@@ -91,7 +101,7 @@ resource "aws_iam_role" "codepipeline" {
 
 data "aws_iam_policy_document" "codepipeline" {
   dynamic "statement" {
-    for_each = var.build_environments
+    for_each = var.build_environments_names
 
     content {
       effect = "Allow"
@@ -102,10 +112,26 @@ data "aws_iam_policy_document" "codepipeline" {
       ]
 
       resources = [
-        aws_s3_bucket.codepipeline.arn,
-        "${aws_s3_bucket.codepipeline.arn}/*",
         aws_s3_bucket.build[statement.key].arn,
         "${aws_s3_bucket.build[statement.key].arn}/*"
+      ]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = local.build_environment_branches
+
+    content {
+      effect = "Allow"
+
+      actions = [
+        "s3:GetObject",
+        "s3:PutObject"
+      ]
+
+      resources = [
+        aws_s3_bucket.codepipeline[statement.key].arn,
+        "${aws_s3_bucket.codepipeline[statement.key].arn}/*",
       ]
     }
   }
@@ -130,7 +156,7 @@ data "aws_iam_policy_document" "codepipeline" {
 }
 
 resource "aws_codebuild_project" "website" {
-  for_each = var.build_environments
+  for_each = var.build_environments_names
 
   name         = "${var.project_name}-${each.value}-codebuild"
   service_role = aws_iam_role.codepipeline.arn
@@ -152,11 +178,13 @@ resource "aws_codebuild_project" "website" {
 
 # CodePipeline
 resource "aws_codepipeline" "website" {
-  name     = "${var.project_name}-codepipeline"
+  for_each = local.build_environment_branches
+
+  name     = "${var.project_name}-${each.value}-codepipeline"
   role_arn = aws_iam_role.codepipeline.arn
 
   artifact_store {
-    location = aws_s3_bucket.codepipeline.bucket
+    location = aws_s3_bucket.codepipeline[each.value].bucket
     type     = "S3"
   }
 
@@ -174,16 +202,19 @@ resource "aws_codepipeline" "website" {
       configuration = {
         ConnectionArn    = aws_codestarconnections_connection.website.arn
         FullRepositoryId = var.repository_id
-        BranchName       = "main"
+        BranchName       = each.value
       }
     }
   }
 
   dynamic "stage" {
-    for_each = var.build_environments
+    for_each = {
+      for env in var.build_environments : env.run_order => env
+      if env.branch == each.value
+    }
 
     content {
-      name = title(stage.value)
+      name = title(stage.value.name)
 
 
       action {
@@ -193,11 +224,11 @@ resource "aws_codepipeline" "website" {
         owner            = "AWS"
         version          = "1"
         input_artifacts  = ["source_output"]
-        output_artifacts = ["${stage.value}-build_output"]
+        output_artifacts = ["${stage.value.name}-build_output"]
         run_order        = 1
 
         configuration = {
-          ProjectName = aws_codebuild_project.website[stage.key].name
+          ProjectName = aws_codebuild_project.website[stage.value.name].name
         }
       }
 
@@ -207,16 +238,14 @@ resource "aws_codepipeline" "website" {
         owner           = "AWS"
         provider        = "S3"
         version         = "1"
-        input_artifacts = ["${stage.value}-build_output"]
+        input_artifacts = ["${stage.value.name}-build_output"]
         run_order       = 2
 
         configuration = {
-          BucketName = aws_s3_bucket.build[stage.key].id
+          BucketName = aws_s3_bucket.build[stage.value.name].id
           Extract    = true
         }
       }
     }
-
-
   }
 }
