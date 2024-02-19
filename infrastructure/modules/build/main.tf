@@ -190,7 +190,7 @@ resource "aws_codebuild_project" "deploy" {
   service_role = aws_iam_role.codepipeline_role.arn
 
   artifacts {
-    type = "NO_ARTIFACTS"
+    type = "CODEPIPELINE"
   }
 
   source {
