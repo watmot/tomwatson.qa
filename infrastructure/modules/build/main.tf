@@ -176,7 +176,7 @@ resource "aws_codebuild_project" "website" {
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
     type         = "LINUX_CONTAINER"
-    image        = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
+    image        = "aws/codebuild/standard:7.0"
   }
 }
 
