@@ -137,7 +137,8 @@ data "aws_iam_policy_document" "codepipeline_policy" {
 
     actions = [
       "logs:CreateLogStream",
-      "logs:CreateLogGroup"
+      "logs:CreateLogGroup",
+      "logs:PutLogEvents"
     ]
 
     resources = ["*"]
