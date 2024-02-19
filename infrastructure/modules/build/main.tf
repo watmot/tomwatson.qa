@@ -128,7 +128,10 @@ data "aws_iam_policy_document" "codepipeline_policy" {
       "codebuild:StartBuild"
     ]
 
-    resources = [for s in var.build_environments_names : aws_codebuild_project.website[s].arn]
+    resources = concat(
+      [for s in var.build_environments_names : aws_codebuild_project.build[s].arn],
+      [for s in var.build_environments_names : aws_codebuild_project.deploy[s].arn]
+    )
   }
 
   # Logs
@@ -203,7 +206,7 @@ resource "aws_codebuild_project" "deploy" {
     environment_variable {
       name  = "DEST_BUCKET"
       type  = "PLAINTEXT"
-      value = aws_s3_bucket.build.id
+      value = aws_s3_bucket.build[each.key].id
     }
   }
 }
