@@ -128,7 +128,7 @@ data "aws_iam_policy_document" "codepipeline_policy" {
       "codebuild:StartBuild"
     ]
 
-    resources = ["*"]
+    resources = [for s in var.build_environments_names : aws_codebuild_project.website[s].arn]
   }
 
   # Logs
