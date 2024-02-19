@@ -74,17 +74,22 @@ resource "aws_cloudfront_cache_policy" "website" {
 
 # Cloudfront
 resource "aws_cloudfront_distribution" "website" {
+  enabled             = true
+  is_ipv6_enabled     = true
+  default_root_object = "app/out/index.html"
+  aliases             = [var.domain_name, "www.${var.domain_name}"]
+
   origin {
     domain_name              = data.aws_s3_bucket.build.bucket_regional_domain_name
     origin_access_control_id = aws_cloudfront_origin_access_control.website.id
     origin_id                = "${var.project_name}-${var.build_environment}"
   }
 
-  enabled             = true
-  is_ipv6_enabled     = true
-  default_root_object = "index.html"
-
-  aliases = [var.domain_name, "www.${var.domain_name}"]
+  custom_error_response {
+    error_code         = 403
+    response_code      = 404
+    response_page_path = "app/out/404.html"
+  }
 
   default_cache_behavior {
     cache_policy_id        = aws_cloudfront_cache_policy.website.id
@@ -93,7 +98,6 @@ resource "aws_cloudfront_distribution" "website" {
     target_origin_id       = "${var.project_name}-${var.build_environment}"
     viewer_protocol_policy = "redirect-to-https"
   }
-
 
   restrictions {
     geo_restriction {
