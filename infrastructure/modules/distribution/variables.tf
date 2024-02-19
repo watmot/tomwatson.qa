@@ -13,8 +13,8 @@ variable "build_environment" {
   description = "The website build environment the infrastructure is used for."
 }
 
-variable "s3_build_bucket_regional_domain_name" {
-  description = "The regional domain name of the S3 bucket which holds the build files."
+variable "s3_build_bucket_id" {
+  description = "The name of the S3 bucket which holds the build files."
 }
 
 variable "route53_zone_id" {

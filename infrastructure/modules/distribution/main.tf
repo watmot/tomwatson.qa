@@ -1,6 +1,47 @@
-##################
-### CloudFront ###
-##################
+###############################
+### CloudFront Distribution ###
+###############################
+
+# IAM
+data "aws_s3_bucket" "build" {
+  bucket = var.s3_build_bucket_id
+}
+
+data "aws_iam_policy_document" "build" {
+  statement {
+    actions = ["s3:GetObject"]
+
+    resources = [data.aws_s3_bucket.build.arn, "${data.aws_s3_bucket.build.arn}/*"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.website.arn]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "build" {
+  bucket = data.aws_s3_bucket.build.id
+  policy = data.aws_iam_policy_document.build.json
+}
+
+# CORS
+resource "aws_s3_bucket_cors_configuration" "build" {
+  bucket = data.aws_s3_bucket.build.id
+
+  cors_rule {
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+  }
+}
+
 
 resource "aws_cloudfront_origin_access_control" "website" {
   name                              = "${var.project_name}-${var.build_environment}"
@@ -31,9 +72,10 @@ resource "aws_cloudfront_cache_policy" "website" {
   }
 }
 
+# Cloudfront
 resource "aws_cloudfront_distribution" "website" {
   origin {
-    domain_name              = var.s3_build_bucket_regional_domain_name
+    domain_name              = data.aws_s3_bucket.build.bucket_regional_domain_name
     origin_access_control_id = aws_cloudfront_origin_access_control.website.id
     origin_id                = "${var.project_name}-${var.build_environment}"
   }
