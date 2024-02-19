@@ -1,20 +1,18 @@
 version: 0.2
 
 phases:
-  pre_build:
+  build:
     commands:
       - cd ./app
       - echo "Installing dependencies..."
       - npm ci
-  build:
-    commands:
       - echo "Building..."
       - npm run build
 
 artifacts:
   files:
-    - out/**/*
+    - ./app/out/**/*
 
 cache:
   paths:
-    - node_modules/**/*
+    - ./app/node_modules/**/*
