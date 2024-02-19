@@ -76,7 +76,7 @@ resource "aws_cloudfront_cache_policy" "website" {
 resource "aws_cloudfront_distribution" "website" {
   enabled             = true
   is_ipv6_enabled     = true
-  default_root_object = "/app/out/index.html"
+  default_root_object = "index.html"
   aliases             = [var.domain_name, "www.${var.domain_name}"]
 
   origin {
@@ -88,7 +88,7 @@ resource "aws_cloudfront_distribution" "website" {
   custom_error_response {
     error_code         = 403
     response_code      = 404
-    response_page_path = "/app/out/404.html"
+    response_page_path = "/404.html"
   }
 
   default_cache_behavior {
