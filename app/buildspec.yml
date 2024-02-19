@@ -1,8 +1,9 @@
 version: 0.2
 
 phases:
-  pre-build:
+  pre_build:
     commands:
+      - cd ./app
       - echo "Installing dependencies..."
       - npm ci
   build:
