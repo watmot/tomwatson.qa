@@ -169,7 +169,7 @@ resource "aws_codebuild_project" "website" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "./app/buildspec.yml"
+    buildspec = "app/buildspec.yml"
   }
 
   environment {
