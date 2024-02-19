@@ -158,7 +158,7 @@ resource "aws_codestarconnections_connection" "website" {
 }
 
 # CodeBuild
-resource "aws_codebuild_project" "website" {
+resource "aws_codebuild_project" "build" {
   for_each = var.build_environments_names
 
   name         = "${var.project_name}-${each.value}-codebuild"
@@ -170,13 +170,41 @@ resource "aws_codebuild_project" "website" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "app/buildspec.yml"
+    buildspec = "app/buildspec/build.yml"
   }
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
     type         = "LINUX_CONTAINER"
     image        = "aws/codebuild/standard:7.0"
+  }
+}
+
+resource "aws_codebuild_project" "deploy" {
+  for_each = var.build_environments_names
+
+  name         = "${var.project_name}-${each.value}-codebuild"
+  service_role = aws_iam_role.codepipeline_role.arn
+
+  artifacts {
+    type = "NO_ARTIFACTS"
+  }
+
+  source {
+    type      = "CODEPIPELINE"
+    buildspec = "app/buildspec/deploy.yml"
+  }
+
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    type         = "LINUX_CONTAINER"
+    image        = "aws/codebuild/standard:7.0"
+
+    environment_variable {
+      name  = "DEST_BUCKET"
+      type  = "PLAINTEXT"
+      value = aws_s3_bucket.build.id
+    }
   }
 }
 
@@ -224,30 +252,29 @@ resource "aws_codepipeline" "website" {
       action {
         name             = "Build"
         category         = "Build"
-        provider         = "CodeBuild"
         owner            = "AWS"
+        provider         = "CodeBuild"
         version          = "1"
         input_artifacts  = ["source_output"]
         output_artifacts = ["${stage.value.name}-build_output"]
         run_order        = 1
 
         configuration = {
-          ProjectName = aws_codebuild_project.website[stage.value.name].name
+          ProjectName = aws_codebuild_project.build[stage.value.name].name
         }
       }
 
       action {
         name            = "Deploy"
-        category        = "Deploy"
+        category        = "Build"
         owner           = "AWS"
-        provider        = "S3"
+        provider        = "CodeBuild"
         version         = "1"
         input_artifacts = ["${stage.value.name}-build_output"]
         run_order       = 2
 
         configuration = {
-          BucketName = aws_s3_bucket.build[stage.value.name].id
-          Extract    = true
+          ProjectName = aws_codebuild_project.deploy[stage.value.name].name
         }
       }
     }
