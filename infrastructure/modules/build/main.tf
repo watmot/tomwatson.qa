@@ -164,7 +164,7 @@ resource "aws_codestarconnections_connection" "website" {
 resource "aws_codebuild_project" "build" {
   for_each = var.build_environments_names
 
-  name         = "${var.project_name}-${each.value}-codebuild"
+  name         = "${var.project_name}-${each.value}-codebuild-build"
   service_role = aws_iam_role.codepipeline_role.arn
 
   artifacts {
@@ -186,7 +186,7 @@ resource "aws_codebuild_project" "build" {
 resource "aws_codebuild_project" "deploy" {
   for_each = var.build_environments_names
 
-  name         = "${var.project_name}-${each.value}-codebuild"
+  name         = "${var.project_name}-${each.value}-codebuild-deploy"
   service_role = aws_iam_role.codepipeline_role.arn
 
   artifacts {
