@@ -173,7 +173,7 @@ resource "aws_codebuild_project" "build" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "app/buildspec/build.yml"
+    buildspec = "app/buildspec.yml"
   }
 
   environment {
@@ -190,12 +190,21 @@ resource "aws_codebuild_project" "deploy" {
   service_role = aws_iam_role.codepipeline_role.arn
 
   artifacts {
-    type = "CODEPIPELINE"
+    type = "NO_ARTIFACTS"
   }
 
   source {
-    type      = "CODEPIPELINE"
-    buildspec = "app/buildspec/deploy.yml"
+    type      = "NO_SOURCE"
+    buildspec = <<EOF
+      version: 0.2
+
+      phases:
+        build:
+          commands:
+            - aws s3 cp . "s3://${DEST_BUCKET}" --recursive
+            - aws s3 sync . "s3://${DEST_BUCKET}" --delete
+        
+    EOF
   }
 
   environment {
