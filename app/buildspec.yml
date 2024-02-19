@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  pre-build:
+    commands:
+      - echo "Installing dependencies..."
+      - npm ci
+  build:
+    commands:
+      - echo "Building..."
+      - npm run build
+
+artifacts:
+  files:
+    - out/**/*
+
+cache:
+  paths:
+    - node_modules/**/*
