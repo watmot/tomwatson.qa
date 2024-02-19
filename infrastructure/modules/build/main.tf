@@ -94,48 +94,32 @@ resource "aws_iam_role" "codepipeline_role" {
 }
 
 data "aws_iam_policy_document" "codepipeline_policy" {
-  dynamic "statement" {
-    for_each = var.build_environments_names
 
-    content {
-      effect = "Allow"
+  # S3
+  statement {
+    effect = "Allow"
 
-      actions = [
-        "s3:GetObject",
-        "s3:PutObject"
-      ]
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject"
+    ]
 
-      resources = [
-        aws_s3_bucket.build[statement.key].arn,
-        "${aws_s3_bucket.build[statement.key].arn}/*"
-      ]
-    }
+    resources = concat(
+      [for s in var.build_environments_names : aws_s3_bucket.build[s].arn],
+      [for s in var.build_environments_names : "${aws_s3_bucket.build[s].arn}/*"],
+      [for s in local.build_environment_branches : aws_s3_bucket.codepipeline[s].arn],
+      [for s in local.build_environment_branches : "${aws_s3_bucket.codepipeline[s].arn}/*"],
+    )
   }
 
-  dynamic "statement" {
-    for_each = local.build_environment_branches
-
-    content {
-      effect = "Allow"
-
-      actions = [
-        "s3:GetObject",
-        "s3:PutObject"
-      ]
-
-      resources = [
-        aws_s3_bucket.codepipeline[statement.key].arn,
-        "${aws_s3_bucket.codepipeline[statement.key].arn}/*",
-      ]
-    }
-  }
-
+  # Codestar
   statement {
     effect    = "Allow"
     actions   = ["codestar-connections:UseConnection"]
     resources = [aws_codestarconnections_connection.website.arn]
   }
 
+  # Codebuild
   statement {
     effect = "Allow"
 
@@ -147,6 +131,17 @@ data "aws_iam_policy_document" "codepipeline_policy" {
     resources = ["*"]
   }
 
+  # Logs
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup"
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
