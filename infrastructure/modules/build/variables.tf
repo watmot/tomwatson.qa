@@ -5,9 +5,10 @@ variable "project_name" {
 
 variable "build_environments" {
   type = list(object({
-    name      = string
-    run_order = number
-    branch    = string
+    name              = string
+    run_order         = number
+    branch            = string
+    requires_approval = bool
   }))
   description = "Array of the build environments."
 }

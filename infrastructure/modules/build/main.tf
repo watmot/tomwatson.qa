@@ -1,5 +1,6 @@
 locals {
-  build_environment_branches = toset([for env in var.build_environments : env.branch])
+  build_environment_branches          = toset([for env in var.build_environments : env.branch])
+  build_environment_requires_approval = toset([for env in var.build_environments : env.name if env.requires_approval])
 }
 
 ##########
@@ -257,6 +258,18 @@ resource "aws_codepipeline" "website" {
     content {
       name = title(stage.value.name)
 
+      dynamic "action" {
+        for_each = contains(local.build_environment_requires_approval, stage.value.name) ? [1] : []
+        content {
+          name      = "Approval"
+          category  = "Approval"
+          owner     = "AWS"
+          provider  = "Manual"
+          version   = "1"
+          run_order = 1
+        }
+      }
+
 
       action {
         name             = "Build"
@@ -266,7 +279,7 @@ resource "aws_codepipeline" "website" {
         version          = "1"
         input_artifacts  = ["source_output"]
         output_artifacts = ["${stage.value.name}-build_output"]
-        run_order        = 1
+        run_order        = 2
 
         configuration = {
           ProjectName = aws_codebuild_project.build[stage.value.name].name
@@ -280,7 +293,7 @@ resource "aws_codepipeline" "website" {
         provider        = "CodeBuild"
         version         = "1"
         input_artifacts = ["${stage.value.name}-build_output"]
-        run_order       = 2
+        run_order       = 3
 
         configuration = {
           ProjectName = aws_codebuild_project.deploy[stage.value.name].name
