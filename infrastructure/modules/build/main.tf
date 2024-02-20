@@ -101,7 +101,10 @@ data "aws_iam_policy_document" "codepipeline_policy" {
 
     actions = [
       "s3:GetObject",
-      "s3:PutObject"
+      "s3:PutObject",
+      "s3:ListBucket",
+      "s3:PutObjectAcl",
+      "s3:DeleteObject"
     ]
 
     resources = concat(
@@ -201,9 +204,9 @@ resource "aws_codebuild_project" "deploy" {
       phases:
         build:
           commands:
-            - aws s3 cp . "s3://${DEST_BUCKET}" --recursive
-            - aws s3 sync . "s3://${DEST_BUCKET}" --delete
-        
+            - aws s3 cp . "s3://${aws_s3_bucket.build[each.value].id}" --recursive --acl=private
+            - aws s3 sync . "s3://${aws_s3_bucket.build[each.value].id}" --delete --acl=private
+            
     EOF
   }
 
@@ -211,12 +214,6 @@ resource "aws_codebuild_project" "deploy" {
     compute_type = "BUILD_GENERAL1_SMALL"
     type         = "LINUX_CONTAINER"
     image        = "aws/codebuild/standard:7.0"
-
-    environment_variable {
-      name  = "DEST_BUCKET"
-      type  = "PLAINTEXT"
-      value = aws_s3_bucket.build[each.key].id
-    }
   }
 }
 
