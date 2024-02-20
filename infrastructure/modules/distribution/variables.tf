@@ -24,3 +24,7 @@ variable "route53_zone_id" {
 variable "acm_certificate_id" {
   description = "The ID of the ACM certificate."
 }
+
+variable "web_acl_id" {
+  description = "The ID of the WAF Web ACL."
+}
