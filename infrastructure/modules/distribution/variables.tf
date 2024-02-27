@@ -28,3 +28,8 @@ variable "acm_certificate_id" {
 variable "web_acl_id" {
   description = "The ID of the WAF Web ACL."
 }
+
+variable "lambda_arn" {
+  type        = string
+  description = "ARN of the Lambda@Edge function."
+}

@@ -84,6 +84,11 @@ resource "aws_cloudfront_distribution" "website" {
     domain_name              = data.aws_s3_bucket.build.bucket_regional_domain_name
     origin_access_control_id = aws_cloudfront_origin_access_control.website.id
     origin_id                = "${var.project_name}-${var.build_environment}"
+
+    custom_header {
+      name  = "Build-Environment"
+      value = var.build_environment
+    }
   }
 
   custom_error_response {
@@ -98,6 +103,11 @@ resource "aws_cloudfront_distribution" "website" {
     cached_methods         = ["GET", "HEAD", "OPTIONS"]
     target_origin_id       = "${var.project_name}-${var.build_environment}"
     viewer_protocol_policy = "redirect-to-https"
+
+    lambda_function_association {
+      event_type = "viewer-request"
+      lambda_arn = var.lambda_arn
+    }
   }
 
   restrictions {

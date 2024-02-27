@@ -55,6 +55,83 @@ module "waf" {
   project_name = local.project_name
 }
 
+###################
+### Lambda@Edge ###
+###################
+
+# IAM
+data "aws_iam_policy_document" "lambda_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com", "edgelambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "lambda_role" {
+  name               = "${local.project_name}-lambda-role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+}
+
+data "aws_iam_policy_document" "lambda_policy" {
+  # Logs
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup",
+      "logs:PutLogEvents"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_policy" {
+  name   = "${local.project_name}-lambda-policy"
+  role   = aws_iam_role.lambda_role.id
+  policy = data.aws_iam_policy_document.lambda_policy.json
+}
+
+# Viewer Request
+data "template_file" "lambda_viewer_request" {
+  template = file("./lambdas/viewer_request/index.tpl")
+  vars = {
+    TEST = "Template file working!"
+  }
+}
+
+data "archive_file" "lambda" {
+  type = "zip"
+  source {
+    content  = data.template_file.lambda_viewer_request.rendered
+    filename = "index.mjs"
+  }
+  output_path = "lambdas/viewer_request.zip"
+}
+
+module "lambda_viewer_request" {
+  source = "./modules/lambda"
+
+  providers = {
+    aws = aws.use1
+  }
+
+  for_each = local.build_environments_names
+
+  build_environments_names = local.build_environments_names
+  iam_role                 = aws_iam_role.lambda_role.arn
+  function_name            = "${local.project_name}-${each.key}-viewer-request"
+  output_path              = "./lambdas/viewer_request.zip"
+  source_code_hash         = data.archive_file.lambda.output_base64sha256
+}
+
 ############################
 ### Website Distribution ###
 ############################
@@ -71,4 +148,5 @@ module "distribution" {
   route53_zone_id    = data.aws_route53_zone.website.zone_id
   acm_certificate_id = module.certificate[each.value].acm_certificate_id
   web_acl_id         = module.waf.web_acl_arn
+  lambda_arn         = module.lambda_viewer_request[each.key].lambda_arn
 }
