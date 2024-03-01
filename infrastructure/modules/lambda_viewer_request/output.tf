@@ -3,5 +3,5 @@ output "lambda_arn" {
 }
 
 output "basic_auth_credentials" {
-  value = random_password.basic_auth_credentials.result
+  value = random_string.basic_auth_credentials.result
 }

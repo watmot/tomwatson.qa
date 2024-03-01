@@ -12,7 +12,7 @@ terraform {
 }
 
 # Secrets Manager
-resource "random_password" "basic_auth_credentials" {
+resource "random_string" "basic_auth_credentials" {
   keepers = {
     version = 1
   }
@@ -26,7 +26,7 @@ resource "aws_secretsmanager_secret" "basic_auth_credentials" {
 
 resource "aws_secretsmanager_secret_version" "basic_auth_credentials" {
   secret_id     = aws_secretsmanager_secret.basic_auth_credentials.id
-  secret_string = "${var.build_environment}:${random_password.basic_auth_credentials.result}"
+  secret_string = "${var.build_environment}:${random_string.basic_auth_credentials.result}"
 }
 
 # IAM
