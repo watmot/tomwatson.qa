@@ -5,10 +5,11 @@ variable "repository_id" {
 
 variable "build_environments" {
   type = list(object({
-    name              = string
-    run_order         = number
-    branch            = string
-    requires_approval = bool
+    name               = string
+    run_order          = number
+    branch             = string
+    requires_approval  = bool
+    basic_auth_enabled = bool
   }))
   description = "List of build environments."
 }

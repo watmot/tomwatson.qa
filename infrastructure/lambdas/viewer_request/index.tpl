@@ -1,32 +1,72 @@
-export const handler = (event, context, callback) => {
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
+
+import { timingSafeEqual } from "crypto";
+
+const getCredentials = async (secretId) => {
+  let credentials = null;
+
+  try {
+    const client = new SecretsManagerClient({ region: "us-east-1" });
+    const command = new GetSecretValueCommand({
+      SecretId: secretId,
+    });
+
+    const { SecretString } = await client.send(command);
+
+    credentials = "Basic " + Buffer.from(SecretString).toString("base64");
+  } catch (err) {
+    console.error(err);
+  }
+
+  return credentials;
+};
+
+const getAuthHeader = (headers) =>
+  headers.authorization ? headers.authorization[0].value : "";
+
+const checkCredentials = async (input) => {
+  let isValid = false;
+
+  const credentials = await getCredentials("${BASIC_AUTH_SECRET_ID}");
+
+  if (credentials) {
+    const bufferCredentials = Buffer.from(credentials);
+    const bufferInput = Buffer.from(input);
+
+    try {
+      isValid = timingSafeEqual(bufferCredentials, bufferInput);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  return isValid;
+};
+
+export const handler = async (event, context, callback) => {
   const { request } = event.Records[0].cf;
   const { headers } = request;
 
-  const username = "username";
-  const password = "password";
+  const basicAuthEnabled = ${BASIC_AUTH_ENABLED};
 
-  const authString =
-    "Basic " + Buffer.from(username + ":" + password).toString("base64");
+  if (basicAuthEnabled) {
+    const authHeader = getAuthHeader(headers);
 
-  console.log("authString: ", authString);
-  console.log(
-    "headers.authorization === undefined: ",
-    typeof headers.authorization === "undefined"
-  );
-  console.log("headers.authorization: ", headers.authorization);
+    const validCredentials = await checkCredentials(authHeader);
 
-  if (
-    typeof headers.authorization === "undefined" ||
-    headers.authorization[0].value !== authString
-  ) {
-    return callback(null, {
-      body: "Unauthorized",
-      headers: {
-        "www-authenticate": [{ key: "WWW-Authenticate", value: "Basic" }],
-      },
-      status: "401",
-      statusDescription: "Unauthorized",
-    });
+    if (!validCredentials) {
+      return callback(null, {
+        body: "Unauthorized",
+        headers: {
+          "www-authenticate": [{ key: "WWW-Authenticate", value: "Basic" }],
+        },
+        status: "401",
+        statusDescription: "Unauthorized",
+      });
+    }
   }
 
   return callback(null, request);
