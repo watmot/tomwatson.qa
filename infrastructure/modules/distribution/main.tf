@@ -79,16 +79,12 @@ resource "aws_cloudfront_distribution" "website" {
   default_root_object = "index.html"
   aliases             = [var.domain_name, "www.${var.domain_name}"]
   web_acl_id          = var.web_acl_id
+  price_class         = var.build_environment == "production" ? "PriceClass_All" : "PriceClass_100"
 
   origin {
     domain_name              = data.aws_s3_bucket.build.bucket_regional_domain_name
     origin_access_control_id = aws_cloudfront_origin_access_control.website.id
     origin_id                = "${var.project_name}-${var.build_environment}"
-
-    custom_header {
-      name  = "Build-Environment"
-      value = var.build_environment
-    }
   }
 
   custom_error_response {
