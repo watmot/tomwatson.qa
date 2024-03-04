@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "npm run build && serve ./out",
     "lint": "next lint",
     "cypress:open": "cypress open",
+    "cypress:component": "cypress run --component",
+    "cypress:e2e": "start-server-and-test 3000 'cypress run --e2e'",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -26,16 +28,19 @@
     "@storybook/nextjs": "^7.6.16",
     "@storybook/react": "^7.6.16",
     "@storybook/test": "^7.6.16",
+    "@testing-library/cypress": "^10.0.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "classnames": "^2.5.1",
-    "cypress": "^13.6.4",
+    "cypress": "^13.6.6",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-storybook": "^0.8.0",
     "sass": "^1.71.1",
+    "serve": "^14.2.1",
+    "start-server-and-test": "^2.0.3",
     "storybook": "^7.6.16",
     "typescript": "^5"
   }
