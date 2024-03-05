@@ -14,7 +14,7 @@ phases:
       - echo "Building..."
       - npm run build:next
       - |
-        if [ $NODE_ENV = "development" ]; then
+        if [ $NEXT_PUBLIC_BUILD_ENVIRONMENT = "dev" ]; then
           npm run build:storybook && npm run postbuild:storybook;
         fi
 

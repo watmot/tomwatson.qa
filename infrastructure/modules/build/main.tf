@@ -177,12 +177,12 @@ resource "aws_codestarconnections_connection" "website" {
 }
 
 # Environment Variables
-resource "aws_ssm_parameter" "node_env" {
+resource "aws_ssm_parameter" "build_environment" {
   for_each = var.build_environments_names
 
-  name  = "${var.project_name}-${each.key}-node-env"
+  name  = "${var.project_name}-${each.key}-build-environment"
   type  = "String"
-  value = each.key == "production" || each.key == "staging" ? "production" : "development"
+  value = each.key
 }
 
 # CodeBuild
@@ -207,9 +207,9 @@ resource "aws_codebuild_project" "build" {
     image        = "aws/codebuild/standard:7.0"
 
     environment_variable {
-      name  = "NODE_ENV"
+      name  = "NEXT_PUBLIC_BUILD_ENVIRONMENT"
       type  = "PARAMETER_STORE"
-      value = "${var.project_name}-${each.key}-node-env"
+      value = "${var.project_name}-${each.key}-build-environment"
     }
   }
 }
