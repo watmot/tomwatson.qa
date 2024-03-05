@@ -138,6 +138,18 @@ data "aws_iam_policy_document" "codepipeline_policy" {
     )
   }
 
+  # SSM Parameter Store
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ssm:GetParametersByPath",
+      "ssm:GetParameters"
+    ]
+
+    resources = ["*"]
+  }
+
   # Logs
   statement {
     effect = "Allow"
@@ -164,6 +176,15 @@ resource "aws_codestarconnections_connection" "website" {
   provider_type = "GitHub"
 }
 
+# Environment Variables
+resource "aws_ssm_parameter" "node_env" {
+  for_each = var.build_environments_names
+
+  name  = "${var.project_name}-${each.key}-node-env"
+  type  = "String"
+  value = each.key == "production" || each.key == "staging" ? "production" : "development"
+}
+
 # CodeBuild
 resource "aws_codebuild_project" "build" {
   for_each = var.build_environments_names
@@ -184,6 +205,12 @@ resource "aws_codebuild_project" "build" {
     compute_type = "BUILD_GENERAL1_SMALL"
     type         = "LINUX_CONTAINER"
     image        = "aws/codebuild/standard:7.0"
+
+    environment_variable {
+      name  = "NODE_ENV"
+      type  = "PARAMETER_STORE"
+      value = "${var.project_name}-${each.key}-node-env"
+    }
   }
 }
 

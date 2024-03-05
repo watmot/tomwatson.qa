@@ -12,7 +12,11 @@ phases:
   build:
     commands:
       - echo "Building..."
-      - npm run build
+      - npm run build:next
+      - |
+        if [ $NODE_ENV = "development" ]; then
+          npm run build:storybook && npm run postbuild:storybook;
+        fi
 
 artifacts:
   files:

@@ -4,14 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "npm run build && serve ./out",
+    "build:next": "next build",
+    "build:storybook": "storybook build -o ./out/storybook -c .storybook",
+    "postbuild:storybook": "perl -i -p -e 's#<head>#<head>\n\t\t<base href='/storybook/'>#' ./out/storybook/index.html",
+    "start": "npm run build:next && serve ./out",
+    "start:storybook": "npm run build:next && npm run build:storybook && npm run postbuild:storybook && serve ./out",
     "lint": "next lint",
     "cypress:open": "cypress open",
     "cypress:component": "cypress run --component",
     "cypress:e2e": "start-server-and-test 3000 'cypress run --e2e'",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "storybook": "storybook dev -p 6006"
   },
   "dependencies": {
     "next": "^13.5.6",
