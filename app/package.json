@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:storybook": "storybook dev -p 6006",
     "build:next": "next build",
     "build:storybook": "storybook build -o ./out/storybook -c .storybook",
     "postbuild:storybook": "perl -i -p -e 's#<head>#<head>\n\t\t<base href='/storybook/'>#' ./out/storybook/index.html",
@@ -12,8 +13,7 @@
     "lint": "next lint",
     "cypress:open": "cypress open",
     "cypress:component": "cypress run --component",
-    "cypress:e2e": "start-server-and-test 3000 'cypress run --e2e'",
-    "storybook": "storybook dev -p 6006"
+    "cypress:e2e": "start-server-and-test 3000 'cypress run --e2e'"
   },
   "dependencies": {
     "@storybook/addon-essentials": "^7.6.17",
