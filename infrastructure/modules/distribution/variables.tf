@@ -29,7 +29,13 @@ variable "web_acl_id" {
   description = "The ID of the WAF Web ACL."
 }
 
-variable "lambda_arn" {
+variable "viewer_request_lambda_arn" {
   type        = string
-  description = "ARN of the Lambda@Edge function."
+  description = "ARN of the Lambda@Edge viewer request function."
 }
+
+variable "origin_request_lambda_arn" {
+  type        = string
+  description = "ARN of the Lambda@Edge origin request function."
+}
+

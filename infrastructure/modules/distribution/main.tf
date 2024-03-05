@@ -102,7 +102,12 @@ resource "aws_cloudfront_distribution" "website" {
 
     lambda_function_association {
       event_type = "viewer-request"
-      lambda_arn = var.lambda_arn
+      lambda_arn = var.viewer_request_lambda_arn
+    }
+
+    lambda_function_association {
+      event_type = "origin-request"
+      lambda_arn = var.origin_request_lambda_arn
     }
   }
 
