@@ -5,6 +5,7 @@ env:
   exported-variables:
     - NEXT_PUBLIC_BUILD_VERSION
     - NEXT_PUBLIC_COMMIT_ID
+    - NEXT_PUBLIC_BUILD_TIMESTAMP
 
 phases:
   install:
@@ -18,6 +19,7 @@ phases:
       - echo "Declare env variables..."
       - export NEXT_PUBLIC_BUILD_VERSION="$CODEBUILD_BUILD_NUMBER"
       - export NEXT_PUBLIC_COMMIT_ID="${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}"
+      - export NEXT_PUBLIC_BUILD_TIMESTAMP="$(date +'%d/%m/%Y %T')"
   build:
     commands:
       - echo "Building..."

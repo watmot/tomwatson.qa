@@ -115,6 +115,13 @@ describe('AppAdmin', () => {
                 .should('contain.text', expected)
                 .and('be.visible');
             });
+
+            it('should display the datetime of the deployment', () => {
+              const expected = Cypress.env('NEXT_PUBLIC_BUILD_DATETIME');
+              cy.findByRole('listitem', { name: /build-info-datetime/i })
+                .should('contain.text', expected)
+                .and('be.visible');
+            });
           });
         });
       });

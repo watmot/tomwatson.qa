@@ -2,7 +2,7 @@ import { View as AppAdmin, ViewProps } from './AppAdmin.view';
 
 const props: ViewProps = {
   isDev: true,
-  build: { env: 'local', version: '167', commit: '1234abc' },
+  build: { env: 'local', version: '167', commit: '1234abc', datetime: '01/04/1992 05:00:00' },
   device: {
     device: 'desktop',
     resolution: '1920 x 1080',

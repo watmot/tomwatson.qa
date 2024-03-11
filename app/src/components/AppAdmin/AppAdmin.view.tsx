@@ -11,6 +11,7 @@ export interface ViewProps {
     env: 'local' | 'dev' | 'test' | 'staging' | 'production';
     version: string;
     commit: string;
+    datetime: string;
   };
   device: {
     device?: string;

@@ -6,6 +6,7 @@ declare global {
       NEXT_PUBLIC_BUILD_ENVIRONMENT: 'local' | 'dev' | 'test' | 'staging' | 'production';
       NEXT_PUBLIC_BUILD_VERSION: string;
       NEXT_PUBLIC_COMMIT_ID: string;
+      NEXT_PUBLIC_BUILD_DATETIME: string;
     }
   }
 }

@@ -14,7 +14,8 @@ export const Controller = () => {
       build={{
         env: process.env.NEXT_PUBLIC_BUILD_ENVIRONMENT,
         version: process.env.NEXT_PUBLIC_BUILD_VERSION,
-        commit: process.env.NEXT_PUBLIC_COMMIT_ID
+        commit: process.env.NEXT_PUBLIC_COMMIT_ID,
+        datetime: process.env.NEXT_PUBLIC_BUILD_DATETIME
       }}
       device={{
         device: ua?.device.type,
