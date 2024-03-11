@@ -1,6 +1,7 @@
 version: 0.2
 
 env:
+  shell: bash
   exported-variables:
     - NEXT_PUBLIC_BUILD_VERSION
     - NEXT_PUBLIC_COMMIT_ID
