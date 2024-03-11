@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "target": "es5",
+    "jsx": "react-jsx",
     "lib": ["es5", "dom"],
-    "types": ["node", "cypress", "@testing-library/cypress"]
+    "types": ["cypress", "node", "@testing-library/cypress", "@cypress/skip-test"]
   },
-  "include": ["**/*.ts"]
+  "include": ["../node_modules/cypress", "**/*.ts", "../src/**/*.cy.tsx"]
 }
