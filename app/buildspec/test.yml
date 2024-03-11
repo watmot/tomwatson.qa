@@ -8,16 +8,16 @@ phases:
     commands:
       - echo "Installing dependencies..."
       - npm ci
+      - apt-get install -y libatk-1.0-0
+
   build:
     commands:
-      - npx cypress run --component
-
-      # - echo "Running unit tests..."
-      # - npm run test:unit
-      # - echo "Running component tests..."
-      # - npm run test:component
-      # - echo "Running e2e tests..."
-      # - npm run test:e2e
+      - echo "Running unit tests..."
+      - npm run test:unit
+      - echo "Running component tests..."
+      - npm run test:component
+      - echo "Running e2e tests..."
+      - npm run test:e2e
 
 artifacts:
   files:
