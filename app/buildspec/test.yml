@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+  pre_build:
+    commands:
+      - echo "Installing dependencies..."
+      - npm ci
+  build:
+    commands:
+      - echo "Running unit tests..."
+      - npm run test:unit
+      - echo "Running component tests..."
+      - npm run test:component
+      - echo "Running e2e tests..."
+      - npm run test:e2e
+
+artifacts:
+  files:
+    - '**/*'
+  base-directory: out/
+
+cache:
+  paths:
+    - ./node_modules/**/*

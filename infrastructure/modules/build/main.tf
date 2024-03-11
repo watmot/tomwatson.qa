@@ -198,7 +198,35 @@ resource "aws_codebuild_project" "build" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "app/buildspec.yml"
+    buildspec = "app/buildspec/build.yml"
+  }
+
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    type         = "LINUX_CONTAINER"
+    image        = "aws/codebuild/standard:7.0"
+
+    environment_variable {
+      name  = "NEXT_PUBLIC_BUILD_ENVIRONMENT"
+      type  = "PARAMETER_STORE"
+      value = "${var.project_name}-${each.key}-build-environment"
+    }
+  }
+}
+
+resource "aws_codebuild_project" "test" {
+  for_each = var.build_environments_names
+
+  name         = "${var.project_name}-${each.value}-codebuild-test"
+  service_role = aws_iam_role.codepipeline_role.arn
+
+  artifacts {
+    type = "CODEPIPELINE"
+  }
+
+  source {
+    type      = "CODEPIPELINE"
+    buildspec = "app/buildspec/test.yml"
   }
 
   environment {
@@ -297,7 +325,6 @@ resource "aws_codepipeline" "website" {
         }
       }
 
-
       action {
         name             = "Build"
         category         = "Build"
@@ -305,11 +332,26 @@ resource "aws_codepipeline" "website" {
         provider         = "CodeBuild"
         version          = "1"
         input_artifacts  = ["source_output"]
-        output_artifacts = ["${stage.value.name}-build_output"]
+        output_artifacts = ["${stage.value.name}-build_source_output"]
         run_order        = 2
 
         configuration = {
           ProjectName = aws_codebuild_project.build[stage.value.name].name
+        }
+      }
+
+      action {
+        name             = "Test"
+        category         = "Test"
+        owner            = "AWS"
+        provider         = "CodeBuild"
+        version          = "1"
+        input_artifacts  = ["${stage.value.name}-build_source_output"]
+        output_artifacts = ["${stage.value.name}-build_output"]
+        run_order        = 3
+
+        configuration = {
+          ProjectName = aws_codebuild_project.test[stage.value.name].name
         }
       }
 
@@ -320,7 +362,7 @@ resource "aws_codepipeline" "website" {
         provider        = "CodeBuild"
         version         = "1"
         input_artifacts = ["${stage.value.name}-build_output"]
-        run_order       = 3
+        run_order       = 4
 
         configuration = {
           ProjectName = aws_codebuild_project.deploy[stage.value.name].name

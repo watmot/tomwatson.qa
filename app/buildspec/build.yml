@@ -21,7 +21,7 @@ phases:
 artifacts:
   files:
     - '**/*'
-  base-directory: app/out
+  base-directory: app/
 
 cache:
   paths:
