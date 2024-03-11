@@ -134,6 +134,7 @@ data "aws_iam_policy_document" "codepipeline_policy" {
 
     resources = concat(
       [for s in var.build_environments_names : aws_codebuild_project.build[s].arn],
+      [for s in var.build_environments_names : aws_codebuild_project.test[s].arn],
       [for s in var.build_environments_names : aws_codebuild_project.deploy[s].arn]
     )
   }
