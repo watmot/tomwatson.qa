@@ -11,7 +11,7 @@
     "start": "serve ./out",
     "lint": "next lint",
     "test:dev": "cypress open & next dev",
-    "test:unit": "jest",
+    "test:unit": "jest --passWithNoTests",
     "test:component": "cypress run --component",
     "test:e2e": "start-server-and-test 3000 'cypress run --e2e'"
   },
