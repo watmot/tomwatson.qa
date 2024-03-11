@@ -16,7 +16,7 @@ phases:
       - npm ci
       - echo "Declare env variables..."
       - export NEXT_PUBLIC_BUILD_VERSION="$CODEBUILD_BUILD_NUMBER"
-      - export NEXT_PUBLIC_COMMIT_ID="${$CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}"
+      - export NEXT_PUBLIC_COMMIT_ID=${"$CODEBUILD_RESOLVED_SOURCE_VERSION":0:7}"
   build:
     commands:
       - echo "Building..."
