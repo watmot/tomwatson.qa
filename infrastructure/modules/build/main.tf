@@ -227,7 +227,7 @@ resource "aws_codebuild_project" "test" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "app/buildspec/test.yml"
+    buildspec = "buildspec/test.yml"
   }
 
   environment {
