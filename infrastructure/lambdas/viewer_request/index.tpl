@@ -50,6 +50,25 @@ export const handler = async (event, context, callback) => {
   const { request } = event.Records[0].cf;
   const { headers } = request;
 
+  // Redirect from www.
+  const host = headers.host ? headers.host[0].value : "";
+
+  if (host.startsWith("www.")) {
+    return callback(null, {
+      status: 302,
+      statusDescription: "Found",
+      headers: {
+        location: [
+          {
+            key: "Location",
+            value: "https://" + host.slice(4) + request.uri,
+          },
+        ],
+      },
+    });
+  }
+
+  // Basic authentication
   const basicAuthEnabled = ${BASIC_AUTH_ENABLED};
 
   if (basicAuthEnabled) {
