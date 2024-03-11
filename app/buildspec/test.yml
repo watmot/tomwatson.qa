@@ -8,8 +8,6 @@ phases:
     commands:
       - echo "Installing dependencies..."
       - npm ci
-      - echo "Configuring Cypress..."
-      - npm run cy:setup
   build:
     commands:
       - npx cypress run --component
