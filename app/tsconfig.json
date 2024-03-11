@@ -20,15 +20,14 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["cypress", "@testing-library/cypress"]
+    "types": ["jest"]
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
     ".next/types/**/*.ts",
-    "cypress/e2e/.cy.ts",
-    "cypress/tsconfig.json"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "scripts/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "cypress", "cypress.config.ts", "src/**/*.cy.tsx"]
 }
