@@ -6,7 +6,6 @@ locals {
 ##########
 ### S3 ###
 ##########
-
 # Build files. 
 # We create a seperate bucket for each build environment
 resource "aws_s3_bucket" "build" {
@@ -60,12 +59,29 @@ resource "aws_s3_bucket_acl" "codepipeline_acl" {
   acl    = "private"
 }
 
-####################
-### CodePipeline ###
-####################
+###########
+### SSM ###
+###########
+resource "aws_ssm_parameter" "build_environment" {
+  for_each = var.build_environments_names
 
-# IAM
-data "aws_iam_policy_document" "assume_role" {
+  name  = "${var.project_name}-${each.key}-build-environment"
+  type  = "String"
+  value = each.key
+}
+
+##########################
+### CodeStarConnection ###
+##########################
+resource "aws_codestarconnections_connection" "website" {
+  name          = "${var.project_name}-codestar"
+  provider_type = "GitHub"
+}
+
+#################
+### CodeBuild ###
+#################
+data "aws_iam_policy_document" "codebuild_assume_role" {
   statement {
     effect = "Allow"
 
@@ -76,38 +92,19 @@ data "aws_iam_policy_document" "assume_role" {
 
     actions = ["sts:AssumeRole"]
   }
-
-  statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["codepipeline.amazonaws.com"]
-    }
-
-    actions = ["sts:AssumeRole"]
-  }
-
-  statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-
-    actions = ["sts:AssumeRole"]
-  }
 }
 
-resource "aws_iam_role" "codepipeline_role" {
-  name               = "${var.project_name}-codepipeline-role"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+# Build
+resource "aws_iam_role" "codebuild_build" {
+  for_each = var.build_environments_names
+
+  name               = "${var.project_name}-${each.key}-codebuild-build-role"
+  assume_role_policy = data.aws_iam_policy_document.codebuild_assume_role.json
 }
 
-data "aws_iam_policy_document" "codepipeline_policy" {
+data "aws_iam_policy_document" "codebuild_build" {
+  for_each = var.build_environments_names
 
-  # S3
   statement {
     effect = "Allow"
 
@@ -120,48 +117,10 @@ data "aws_iam_policy_document" "codepipeline_policy" {
     ]
 
     resources = concat(
-      [for env in var.build_environments_names : aws_s3_bucket.build[env].arn],
-      [for env in var.build_environments_names : "${aws_s3_bucket.build[env].arn}/*"],
-      [for env in local.build_environment_branches : aws_s3_bucket.codepipeline[env].arn],
-      [for env in local.build_environment_branches : "${aws_s3_bucket.codepipeline[env].arn}/*"],
+      [for env in var.build_environments : aws_s3_bucket.codepipeline[env.branch].arn if env.name == each.key],
+      [for env in var.build_environments : "${aws_s3_bucket.codepipeline[env.branch].arn}/*" if env.name == each.key]
     )
   }
-
-  statement {
-    effect = "Allow"
-
-    actions = ["codepipeline:PutJobSuccessResult", "codepipeline:PutJobFailureResult"]
-
-    resources = [for branch in local.build_environment_branches : aws_codepipeline.website[branch].arn]
-
-  }
-
-  # Codestar
-  statement {
-    effect = "Allow"
-
-    actions = ["codestar-connections:UseConnection"]
-
-    resources = [aws_codestarconnections_connection.website.arn]
-  }
-
-  # Codebuild
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "codebuild:BatchGetBuilds",
-      "codebuild:StartBuild"
-    ]
-
-    resources = concat(
-      [for env in var.build_environments_names : aws_codebuild_project.test[env].arn],
-      [for env in var.build_environments_names : aws_codebuild_project.deploy[env].arn],
-      [for env in var.build_environments_names : aws_codebuild_project.build[env].arn],
-    )
-  }
-
-  # SSM Parameter Store
   statement {
     effect = "Allow"
 
@@ -170,31 +129,8 @@ data "aws_iam_policy_document" "codepipeline_policy" {
       "ssm:GetParameters"
     ]
 
-    resources = [for env in var.build_environments_names : aws_ssm_parameter.build_environment[env].arn]
+    resources = [aws_ssm_parameter.build_environment[each.key].arn]
   }
-
-  # Lambda
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "lambda:InvokeFunction"
-    ]
-
-    resources = [for env in var.build_environments_names : aws_lambda_function.invalidate[env].arn]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "cloudfront:CreateInvalidation"
-    ]
-
-    resources = [for env in var.build_environments_names : var.cloudfront_distribution_arns[env]]
-  }
-
-  # Logs
   statement {
     effect = "Allow"
 
@@ -208,33 +144,19 @@ data "aws_iam_policy_document" "codepipeline_policy" {
   }
 }
 
-resource "aws_iam_role_policy" "codepipeline_policy" {
-  name   = "${var.project_name}-codepipeline-policy"
-  role   = aws_iam_role.codepipeline_role.id
-  policy = data.aws_iam_policy_document.codepipeline_policy.json
-}
-
-# CodeStarConnection
-resource "aws_codestarconnections_connection" "website" {
-  name          = "${var.project_name}-codestar"
-  provider_type = "GitHub"
-}
-
-# Environment Variables
-resource "aws_ssm_parameter" "build_environment" {
+resource "aws_iam_role_policy" "codebuild_build" {
   for_each = var.build_environments_names
 
-  name  = "${var.project_name}-${each.key}-build-environment"
-  type  = "String"
-  value = each.key
+  name   = "${var.project_name}-${each.key}-codebuild-build-policy"
+  role   = aws_iam_role.codebuild_build[each.key].id
+  policy = data.aws_iam_policy_document.codebuild_build[each.key].json
 }
 
-# CodeBuild
 resource "aws_codebuild_project" "build" {
   for_each = var.build_environments_names
 
   name         = "${var.project_name}-${each.value}-codebuild-build"
-  service_role = aws_iam_role.codepipeline_role.arn
+  service_role = aws_iam_role.codebuild_build[each.key].arn
 
   artifacts {
     type = "CODEPIPELINE"
@@ -258,11 +180,69 @@ resource "aws_codebuild_project" "build" {
   }
 }
 
+# Test
+resource "aws_iam_role" "codebuild_test" {
+  for_each = var.build_environments_names
+
+  name               = "${var.project_name}-${each.key}-codebuild-test-role"
+  assume_role_policy = data.aws_iam_policy_document.codebuild_assume_role.json
+}
+
+data "aws_iam_policy_document" "codebuild_test" {
+  for_each = var.build_environments_names
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:ListBucket",
+      "s3:PutObjectAcl",
+      "s3:DeleteObject"
+    ]
+
+    resources = concat(
+      [for env in var.build_environments : aws_s3_bucket.codepipeline[env.branch].arn if env.name == each.key],
+      [for env in var.build_environments : "${aws_s3_bucket.codepipeline[env.branch].arn}/*" if env.name == each.key]
+    )
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ssm:GetParametersByPath",
+      "ssm:GetParameters"
+    ]
+
+    resources = [aws_ssm_parameter.build_environment[each.key].arn]
+  }
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup",
+      "logs:PutLogEvents"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "codebuild_test" {
+  for_each = var.build_environments_names
+
+  name   = "${var.project_name}-${each.key}-codebuild-test-policy"
+  role   = aws_iam_role.codebuild_test[each.key].id
+  policy = data.aws_iam_policy_document.codebuild_test[each.key].json
+}
+
 resource "aws_codebuild_project" "test" {
   for_each = var.build_environments_names
 
   name         = "${var.project_name}-${each.value}-codebuild-test"
-  service_role = aws_iam_role.codepipeline_role.arn
+  service_role = aws_iam_role.codebuild_test[each.key].arn
 
   artifacts {
     type = "CODEPIPELINE"
@@ -286,11 +266,61 @@ resource "aws_codebuild_project" "test" {
   }
 }
 
+# Deploy
+resource "aws_iam_role" "codebuild_deploy" {
+  for_each = var.build_environments_names
+
+  name               = "${var.project_name}-${each.key}-codebuild-deploy-role"
+  assume_role_policy = data.aws_iam_policy_document.codebuild_assume_role.json
+}
+
+data "aws_iam_policy_document" "codebuild_deploy" {
+  for_each = var.build_environments_names
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:ListBucket",
+      "s3:PutObjectAcl",
+      "s3:DeleteObject"
+    ]
+
+    resources = concat(
+      [aws_s3_bucket.build[each.key].arn, "${aws_s3_bucket.build[each.key].arn}/*"],
+      [for env in var.build_environments : aws_s3_bucket.codepipeline[env.branch].arn if env.name == each.key],
+      [for env in var.build_environments : "${aws_s3_bucket.codepipeline[env.branch].arn}/*" if env.name == each.key]
+    )
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup",
+      "logs:PutLogEvents"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "codebuild_deploy" {
+  for_each = var.build_environments_names
+
+  name   = "${var.project_name}-${each.key}-codebuild-deploy-policy"
+  role   = aws_iam_role.codebuild_deploy[each.key].id
+  policy = data.aws_iam_policy_document.codebuild_deploy[each.key].json
+}
+
 resource "aws_codebuild_project" "deploy" {
   for_each = var.build_environments_names
 
   name         = "${var.project_name}-${each.value}-codebuild-deploy"
-  service_role = aws_iam_role.codepipeline_role.arn
+  service_role = aws_iam_role.codebuild_deploy[each.key].arn
 
   artifacts {
     type = "NO_ARTIFACTS"
@@ -317,7 +347,72 @@ resource "aws_codebuild_project" "deploy" {
   }
 }
 
-# Lambda
+##############
+### Lambda ###
+##############
+data "aws_iam_policy_document" "lambda_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+resource "aws_iam_role" "lambda" {
+  for_each = var.build_environments_names
+
+  name               = "${var.project_name}-${each.key}-invalidate-lambda-role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+}
+
+data "aws_iam_policy_document" "lambda" {
+  for_each = var.build_environments_names
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "codepipeline:PutJobSuccessResult",
+      "codepipeline:PutJobFailureResult"
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "cloudfront:CreateInvalidation"
+    ]
+
+    resources = [var.cloudfront_distribution_arns[each.key]]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup",
+      "logs:PutLogEvents"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda" {
+  for_each = var.build_environments_names
+
+  name   = "${var.project_name}-${each.key}-invalidate-lambda-policy"
+  role   = aws_iam_role.lambda[each.key].id
+  policy = data.aws_iam_policy_document.lambda[each.key].json
+}
 
 data "archive_file" "lambda" {
   for_each = var.build_environments_names
@@ -331,7 +426,7 @@ resource "aws_lambda_function" "invalidate" {
 
   filename      = data.archive_file.lambda[each.key].output_path
   function_name = "${var.project_name}-${each.key}-cloudfront-invalidate"
-  role          = aws_iam_role.codepipeline_role.arn
+  role          = aws_iam_role.lambda[each.key].arn
   handler       = "index.handler"
 
   source_code_hash = data.archive_file.lambda[each.key].output_base64sha256
@@ -344,12 +439,108 @@ resource "aws_lambda_function" "invalidate" {
   }
 }
 
-# CodePipeline
+####################
+### CodePipeline ###
+####################
+data "aws_iam_policy_document" "codepipeline_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["codepipeline.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "codepipeline_role" {
+  for_each = local.build_environment_branches
+
+  name               = "${var.project_name}-${each.key}-codepipeline-role"
+  assume_role_policy = data.aws_iam_policy_document.codepipeline_assume_role.json
+}
+
+data "aws_iam_policy_document" "codepipeline_policy" {
+  for_each = local.build_environment_branches
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:ListBucket",
+      "s3:PutObjectAcl",
+      "s3:DeleteObject"
+    ]
+
+    resources = [
+      aws_s3_bucket.codepipeline[each.key].arn,
+      "${aws_s3_bucket.codepipeline[each.key].arn}/*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = ["codestar-connections:UseConnection"]
+
+    resources = [aws_codestarconnections_connection.website.arn]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "codebuild:BatchGetBuilds",
+      "codebuild:StartBuild"
+    ]
+
+    resources = concat(
+      [for env in var.build_environments : aws_codebuild_project.build[env.name].arn if env.branch == each.key],
+      [for env in var.build_environments : aws_codebuild_project.test[env.name].arn if env.branch == each.key],
+      [for env in var.build_environments : aws_codebuild_project.deploy[env.name].arn if env.branch == each.key],
+    )
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "lambda:InvokeFunction"
+    ]
+
+    resources = [for env in var.build_environments : aws_lambda_function.invalidate[env.name].arn if env.branch == each.key]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup",
+      "logs:PutLogEvents"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "codepipeline_policy" {
+  for_each = local.build_environment_branches
+
+  name   = "${var.project_name}-${each.key}-codepipeline-policy"
+  role   = aws_iam_role.codepipeline_role[each.key].id
+  policy = data.aws_iam_policy_document.codepipeline_policy[each.key].json
+}
+
 resource "aws_codepipeline" "website" {
   for_each = local.build_environment_branches
 
   name     = "${var.project_name}-${each.value}-codepipeline"
-  role_arn = aws_iam_role.codepipeline_role.arn
+  role_arn = aws_iam_role.codepipeline_role[each.key].arn
 
   artifact_store {
     location = aws_s3_bucket.codepipeline[each.value].bucket

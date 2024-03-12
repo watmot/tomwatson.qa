@@ -26,7 +26,7 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name               = "${var.project_name}-${var.build_environment}-origin-lambda-role"
+  name               = "${var.project_name}-${var.build_environment}-origin-request-lambda-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
@@ -46,7 +46,7 @@ data "aws_iam_policy_document" "lambda_policy" {
 }
 
 resource "aws_iam_role_policy" "lambda_policy" {
-  name   = "${var.project_name}-${var.build_environment}-origin-lambda-policy"
+  name   = "${var.project_name}-${var.build_environment}-origin-request-lambda-policy"
   role   = aws_iam_role.lambda_role.id
   policy = data.aws_iam_policy_document.lambda_policy.json
 }

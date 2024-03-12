@@ -44,7 +44,7 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name               = "${var.project_name}-${var.build_environment}-lambda-role"
+  name               = "${var.project_name}-${var.build_environment}-viewer-request-lambda-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
@@ -75,7 +75,7 @@ data "aws_iam_policy_document" "lambda_policy" {
 }
 
 resource "aws_iam_role_policy" "lambda_policy" {
-  name   = "${var.project_name}-lambda-policy"
+  name   = "${var.project_name}-viewer-request-lambda-policy"
   role   = aws_iam_role.lambda_role.id
   policy = data.aws_iam_policy_document.lambda_policy.json
 }
@@ -85,7 +85,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
 data "archive_file" "lambda" {
   type = "zip"
   source {
-    content  = templatefile("./lambdas/viewer_request/index.tpl", {
+    content = templatefile("./lambdas/viewer_request/index.tpl", {
       BASIC_AUTH_ENABLED   = var.basic_auth_enabled
       BASIC_AUTH_SECRET_ID = aws_secretsmanager_secret_version.basic_auth_credentials.arn
     })
