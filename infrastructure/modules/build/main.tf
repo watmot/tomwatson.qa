@@ -87,6 +87,17 @@ data "aws_iam_policy_document" "assume_role" {
 
     actions = ["sts:AssumeRole"]
   }
+
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
 }
 
 resource "aws_iam_role" "codepipeline_role" {
@@ -116,10 +127,21 @@ data "aws_iam_policy_document" "codepipeline_policy" {
     )
   }
 
+  statement {
+    effect = "Allow"
+
+    actions = ["codepipeline:PutJobSuccessResult", "codepipeline:PutJobFailureResult"]
+
+    resources = ["*"]
+
+  }
+
   # Codestar
   statement {
-    effect    = "Allow"
-    actions   = ["codestar-connections:UseConnection"]
+    effect = "Allow"
+
+    actions = ["codestar-connections:UseConnection"]
+
     resources = [aws_codestarconnections_connection.website.arn]
   }
 
@@ -146,6 +168,27 @@ data "aws_iam_policy_document" "codepipeline_policy" {
     actions = [
       "ssm:GetParametersByPath",
       "ssm:GetParameters"
+    ]
+
+    resources = ["*"]
+  }
+
+  # Lambda
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "lambda:InvokeFunction"
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "cloudfront:CreateInvalidation"
     ]
 
     resources = ["*"]
@@ -274,6 +317,33 @@ resource "aws_codebuild_project" "deploy" {
   }
 }
 
+# Lambda
+
+data "archive_file" "lambda" {
+  for_each = var.build_environments_names
+
+  type        = "zip"
+  source_file = "lambdas/cloudfront_invalidate/index.mjs"
+  output_path = "lambdas/cloudfront_invalidate_${each.key}.zip"
+}
+resource "aws_lambda_function" "invalidate" {
+  for_each = var.build_environments_names
+
+  filename      = data.archive_file.lambda[each.key].output_path
+  function_name = "${var.project_name}-${each.key}-cloudfront-invalidate"
+  role          = aws_iam_role.codepipeline_role.arn
+  handler       = "index.handler"
+
+  source_code_hash = data.archive_file.lambda[each.key].output_base64sha256
+  runtime          = "nodejs20.x"
+
+  environment {
+    variables = {
+      CLOUDFRONT_DISTRIBUTION_ID = var.cloudfront_distribution_ids[each.key]
+    }
+  }
+}
+
 # CodePipeline
 resource "aws_codepipeline" "website" {
   for_each = local.build_environment_branches
@@ -367,6 +437,19 @@ resource "aws_codepipeline" "website" {
 
         configuration = {
           ProjectName = aws_codebuild_project.deploy[stage.value.name].name
+        }
+      }
+
+      action {
+        name      = "Invalidate"
+        category  = "Invoke"
+        owner     = "AWS"
+        provider  = "Lambda"
+        version   = "1"
+        run_order = 5
+
+        configuration = {
+          FunctionName = "${var.project_name}-${stage.value.name}-cloudfront-invalidate"
         }
       }
     }

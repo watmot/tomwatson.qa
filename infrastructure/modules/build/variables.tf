@@ -22,3 +22,7 @@ variable "repository_id" {
   type        = string
   description = "ID of the GitHub repository."
 }
+
+variable "cloudfront_distribution_ids" {
+  description = "ID of the Cloudfront distribution."
+}
