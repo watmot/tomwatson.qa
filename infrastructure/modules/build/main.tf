@@ -120,10 +120,10 @@ data "aws_iam_policy_document" "codepipeline_policy" {
     ]
 
     resources = concat(
-      [for s in var.build_environments_names : aws_s3_bucket.build[s].arn],
-      [for s in var.build_environments_names : "${aws_s3_bucket.build[s].arn}/*"],
-      [for s in local.build_environment_branches : aws_s3_bucket.codepipeline[s].arn],
-      [for s in local.build_environment_branches : "${aws_s3_bucket.codepipeline[s].arn}/*"],
+      [for env in var.build_environments_names : aws_s3_bucket.build[env].arn],
+      [for env in var.build_environments_names : "${aws_s3_bucket.build[env].arn}/*"],
+      [for env in local.build_environment_branches : aws_s3_bucket.codepipeline[env].arn],
+      [for env in local.build_environment_branches : "${aws_s3_bucket.codepipeline[env].arn}/*"],
     )
   }
 
@@ -132,7 +132,7 @@ data "aws_iam_policy_document" "codepipeline_policy" {
 
     actions = ["codepipeline:PutJobSuccessResult", "codepipeline:PutJobFailureResult"]
 
-    resources = ["*"]
+    resources = [for branch in local.build_environment_branches : aws_codepipeline.website[branch].arn]
 
   }
 
@@ -155,9 +155,9 @@ data "aws_iam_policy_document" "codepipeline_policy" {
     ]
 
     resources = concat(
-      [for s in var.build_environments_names : aws_codebuild_project.build[s].arn],
-      [for s in var.build_environments_names : aws_codebuild_project.test[s].arn],
-      [for s in var.build_environments_names : aws_codebuild_project.deploy[s].arn]
+      [for env in var.build_environments_names : aws_codebuild_project.test[env].arn],
+      [for env in var.build_environments_names : aws_codebuild_project.deploy[env].arn],
+      [for env in var.build_environments_names : aws_codebuild_project.build[env].arn],
     )
   }
 
@@ -170,7 +170,7 @@ data "aws_iam_policy_document" "codepipeline_policy" {
       "ssm:GetParameters"
     ]
 
-    resources = ["*"]
+    resources = [for env in var.build_environments_names : aws_ssm_parameter.build_environment[env].arn]
   }
 
   # Lambda
@@ -181,7 +181,7 @@ data "aws_iam_policy_document" "codepipeline_policy" {
       "lambda:InvokeFunction"
     ]
 
-    resources = ["*"]
+    resources = [for env in var.build_environments_names : aws_lambda_function.invalidate[env].arn]
   }
 
   statement {
@@ -191,7 +191,7 @@ data "aws_iam_policy_document" "codepipeline_policy" {
       "cloudfront:CreateInvalidation"
     ]
 
-    resources = ["*"]
+    resources = [for env in var.build_environments_names : var.cloudfront_distribution_arns[env]]
   }
 
   # Logs

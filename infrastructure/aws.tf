@@ -19,11 +19,12 @@ data "aws_route53_zone" "website" {
 module "build" {
   source = "./modules/build"
 
-  project_name                = local.project_name
-  build_environments          = local.build_environments
-  build_environments_names    = local.build_environments_names
-  repository_id               = var.repository_id
-  cloudfront_distribution_ids = { for k, v in module.distribution : k => v.cloudfront_distribution_id }
+  project_name                 = local.project_name
+  build_environments           = local.build_environments
+  build_environments_names     = local.build_environments_names
+  repository_id                = var.repository_id
+  cloudfront_distribution_ids  = { for k, v in module.distribution : k => v.cloudfront_distribution_id }
+  cloudfront_distribution_arns = { for k, v in module.distribution : k => v.cloudfront_distribution_arn }
 }
 
 #######################

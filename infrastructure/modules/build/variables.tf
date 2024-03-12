@@ -24,5 +24,9 @@ variable "repository_id" {
 }
 
 variable "cloudfront_distribution_ids" {
-  description = "ID of the Cloudfront distribution."
+  description = "IDs of the Cloudfront distributions."
+}
+
+variable "cloudfront_distribution_arns" {
+  description = "ARNs of the Cloudfront distributions."
 }
