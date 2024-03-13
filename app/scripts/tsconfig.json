@@ -11,24 +11,8 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "incremental": true
   },
-  "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
-    "cypress.config.ts",
-    "types/**/*",
-    "src/**/*",
-    "cypress/**/*"
-  ],
-  "exclude": ["node_modules"]
+  "include": ["**/*.ts"],
+  "exclude": ["**/*.test.ts"]
 }

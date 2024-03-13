@@ -13,7 +13,9 @@
     "test:unit": "jest --passWithNoTests",
     "test:dev": "cypress open & next dev",
     "test:component": "cypress run --component",
-    "test:e2e": "start-server-and-test 3000 'cypress run --e2e'"
+    "test:e2e": "start-server-and-test 3000 'cypress run --e2e'",
+    "scripts:tsc": "tsc -p scripts",
+    "scripts:get-paths": "node scripts/get-paths.js"
   },
   "dependencies": {
     "@storybook/addon-essentials": "^7.6.17",
