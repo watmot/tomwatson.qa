@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "target": "es5",
-    "jsx": "react-jsx",
-    "lib": ["es5", "dom"],
-    "types": ["cypress", "node", "@testing-library/cypress", "@cypress/skip-test"]
-  },
-  "include": ["**/*.ts", "../src/**/*.cy.tsx", "../cypress.config.ts", "../types/cypress.d.ts"]
-}
