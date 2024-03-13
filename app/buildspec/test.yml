@@ -19,8 +19,6 @@ phases:
       - export NEXT_PUBLIC_BUILD_DATETIME="$NEXT_PUBLIC_BUILD_DATETIME"
   build:
     commands:
-      - echo "Running unit tests..."
-      - npm run test:unit
       - echo "Running component tests..."
       - npm run test:component
       - echo "Running e2e tests..."

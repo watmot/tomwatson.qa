@@ -1,5 +1,4 @@
-import UAParser = require('ua-parser-js');
-
+import { UAParser } from 'ua-parser-js';
 import { onlyOn } from '@cypress/skip-test';
 
 describe('AppAdmin', () => {

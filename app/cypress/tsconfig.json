@@ -5,5 +5,5 @@
     "lib": ["es5", "dom"],
     "types": ["cypress", "node", "@testing-library/cypress", "@cypress/skip-test"]
   },
-  "include": ["../node_modules/cypress", "**/*.ts", "../src/**/*.cy.tsx"]
+  "include": ["**/*.ts", "../src/**/*.cy.tsx", "../cypress.config.ts", "../types/cypress.d.ts"]
 }
