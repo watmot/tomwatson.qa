@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noUncheckedIndexedAccess": true,
+    "strictPropertyInitialization": false,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -13,22 +14,22 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/data/*": ["./.data/*"]
     }
   },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
     "cypress.config.ts",
     "types/**/*",
     "src/**/*",
-    "cypress/**/*"
+    "scripts/**/*",
+    "../app/cypress/**/*",
+    ".data/**/*"
   ],
   "exclude": ["node_modules"]
 }

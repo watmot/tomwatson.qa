@@ -10,12 +10,11 @@
     "postbuild:storybook": "perl -i -p -e 's#<head>#<head>\n\t\t<base href='/storybook/'>#' ./out/storybook/index.html",
     "start": "serve ./out",
     "lint": "next lint",
-    "test:unit": "jest --passWithNoTests",
+    "test:unit": "jest --passWithNoTests --testMatch=**/*.test.ts",
     "test:dev": "cypress open & next dev",
     "test:component": "cypress run --component",
     "test:e2e": "start-server-and-test 3000 'cypress run --e2e'",
-    "scripts:tsc": "tsc -p scripts",
-    "scripts:get-paths": "node scripts/get-paths.js"
+    "scripts:get-paths": "tsx scripts/get-paths.ts"
   },
   "dependencies": {
     "@storybook/addon-essentials": "^7.6.17",
@@ -25,8 +24,10 @@
     "@storybook/nextjs": "^7.6.17",
     "@storybook/react": "^7.6.17",
     "@storybook/test": "^7.6.17",
+    "axios": "^1.6.7",
     "classnames": "^2.5.1",
     "next": "^13.5.6",
+    "next-videos": "^1.4.1",
     "normalize.css": "^8.0.1",
     "react": "^18",
     "react-dom": "^18",
@@ -38,7 +39,7 @@
     "@cypress/skip-test": "^2.6.1",
     "@jest/globals": "^29.7.0",
     "@testing-library/cypress": "^10.0.1",
-    "@types/node": "^20.11.26",
+    "@types/node": "^20.11.27",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/ua-parser-js": "^0.7.39",
@@ -51,6 +52,7 @@
     "serve": "^14.2.1",
     "start-server-and-test": "^2.0.3",
     "ts-jest": "^29.1.2",
+    "tsx": "^4.7.1",
     "typescript": "^5"
   }
 }
