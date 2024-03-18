@@ -10,6 +10,8 @@ interface GetLines {
   suffix?: string;
 }
 
+const name = 'scripts/generate-imports';
+
 const isImage = (filePath: string) => {
   return /.(jpg|png|jpeg|gif|webp|avif|ico|bmp)/i.test(filePath);
 };
@@ -52,14 +54,20 @@ interface Generate {
 }
 
 export const generate = ({ src, dir, filename, prefix, suffix }: Generate) => {
-  const outputDir = path.resolve(__dirname, '../.data');
+  const outputDir = './.data';
 
+  console.log(`[${name}] Generating asset import script...`);
   const lines = getLines({ src, dir, prefix, suffix });
 
-  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+  try {
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
-  const filePath = path.join(outputDir, filename);
-  fs.writeFileSync(filePath, lines);
+    const filePath = path.join(outputDir, filename);
+    fs.writeFileSync(filePath, lines);
+    console.log(`[${name}] Imports generated. Data written to ${filePath}`);
+  } catch (err) {
+    console.error(`[${name}] ${err}`);
+  }
 };
 
 generate({

@@ -21,7 +21,7 @@ const fetchContent = async () => {
     const content = await storyblokApi?.get('cdn/stories');
     if (!content) throw new Error(`[${name}] The response from the CDN is empty.`);
     const json = JSON.stringify(content.data.stories);
-    const path = './.data/storyblok-content.json';
+    const path = '.data/storyblok-content.json';
     writeFileSync(path, json, 'utf8');
     console.log(`[${name}] Storyblok data fetch succeeded. Data written to ${path}`);
   } catch (err) {
