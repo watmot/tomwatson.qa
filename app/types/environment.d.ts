@@ -7,6 +7,7 @@ declare global {
       NEXT_PUBLIC_BUILD_VERSION: string;
       NEXT_PUBLIC_COMMIT_ID: string;
       NEXT_PUBLIC_BUILD_DATETIME: string;
+      STORYBLOK_TOKEN: string;
     }
   }
 }
