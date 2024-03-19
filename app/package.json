@@ -14,7 +14,7 @@
     "test:dev": "cypress open & next dev",
     "test:component": "cypress run --component",
     "test:e2e": "start-server-and-test 3000 'cypress run --e2e'",
-    "scripts:generate-imports": "tsx scripts/generate-imports.ts",
+    "scripts:generate-imports-script": "tsx scripts/generate-imports-script.ts",
     "scripts:pull-content": "tsx scripts/pull-content.ts",
     "scripts": "run-p scripts:*",
     "storyblok:init": "storyblok pull-components --space=280868",
