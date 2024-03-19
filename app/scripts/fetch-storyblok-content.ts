@@ -52,7 +52,11 @@ const parseContent = (stories: StoryblokStory<StoryContent>[]) => {
 const getAssetBinaries = (content: ParsedContent) => {
   const values = Object.values(flatten(content)) as string[];
   const filtered = [
-    ...new Set(values.filter((value) => /.(jpg|png|jpeg|gif|webp|avif|ico|bmp)/i.test(value)))
+    ...new Set(
+      values
+        .filter((value) => /.(jpg|png|jpeg|gif|webp|avif|ico|bmp)/i.test(value))
+        .map((url) => url.replace('a.storyblok.com', 's3.amazonaws.com/a.storyblok.com'))
+    )
   ];
 
   return filtered;

@@ -2,6 +2,7 @@ import { AssetIds, assets } from '@/data/assets';
 import { Dispatch, SetStateAction } from 'react';
 
 import axios from 'axios';
+import storyblokBinaries from '@/data/storyblok-asset-binaries.json';
 
 type PreloadedFile = null | string;
 
@@ -13,7 +14,7 @@ class Service {
   onUpdate: Dispatch<SetStateAction<number>>;
 
   public constructor() {
-    this.manifest = { ...assets };
+    this.manifest = { ...assets, ...storyblokBinaries };
     this.totalFilesToLoad = Object.keys(this.manifest).length;
     this.totalFilesLoaded = 0;
     this.files = {};
