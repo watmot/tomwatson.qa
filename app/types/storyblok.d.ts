@@ -1,4 +1,4 @@
-import {StoryblokStory} from 'storyblok-generate-ts'
+import { StoryblokStory } from 'storyblok-generate-ts';
 
 export interface RichtextStoryblok {
   type: string;
@@ -13,7 +13,7 @@ export interface ContactStoryblok {
   heading?: string;
   body?: RichtextStoryblok;
   _uid: string;
-  component: "contact";
+  component: 'contact';
   [k: string]: any;
 }
 
@@ -22,8 +22,8 @@ export type MultilinkStoryblok =
       id?: string;
       cached_url?: string;
       anchor?: string;
-      linktype?: "story";
-      target?: "_self" | "_blank";
+      linktype?: 'story';
+      target?: '_self' | '_blank';
       story?: {
         name: string;
         created_at?: string;
@@ -59,31 +59,31 @@ export type MultilinkStoryblok =
       url?: string;
       cached_url?: string;
       anchor?: string;
-      linktype?: "asset" | "url";
-      target?: "_self" | "_blank";
+      linktype?: 'asset' | 'url';
+      target?: '_self' | '_blank';
       [k: string]: any;
     }
   | {
       email?: string;
-      linktype?: "email";
-      target?: "_self" | "_blank";
+      linktype?: 'email';
+      target?: '_self' | '_blank';
       [k: string]: any;
     };
 
 export interface CookieBannerStoryblok {
   body?: RichtextStoryblok;
   cta_accept?: string;
-  cta_policy?: Exclude<MultilinkStoryblok, {linktype?: "email"} | {linktype?: "asset"}>;
+  cta_policy?: Exclude<MultilinkStoryblok, { linktype?: 'email' } | { linktype?: 'asset' }>;
   _uid: string;
-  component: "cookie_banner";
+  component: 'cookie_banner';
   [k: string]: any;
 }
 
 export interface ExternalLinkStoryblok {
   heading?: string;
-  link?: Exclude<MultilinkStoryblok, {linktype?: "email"} | {linktype?: "asset"}>;
+  link?: Exclude<MultilinkStoryblok, { linktype?: 'email' } | { linktype?: 'asset' }>;
   _uid: string;
-  component: "external_link";
+  component: 'external_link';
   [k: string]: any;
 }
 
@@ -109,7 +109,7 @@ export interface FloatingImageStoryblok {
   alt_text?: string;
   image?: AssetStoryblok;
   _uid: string;
-  component: "floating_image";
+  component: 'floating_image';
   [k: string]: any;
 }
 
@@ -131,7 +131,7 @@ export interface HomeStoryblok {
   contact_body?: RichtextStoryblok;
   floating_images?: FloatingImageStoryblok[];
   _uid: string;
-  component: "home";
+  component: 'home';
   [k: string]: any;
 }
 
@@ -140,7 +140,7 @@ export interface IntroStoryblok {
   heading?: string;
   cta?: string;
   _uid: string;
-  component: "intro";
+  component: 'intro';
   [k: string]: any;
 }
 
@@ -149,7 +149,7 @@ export interface LandingStoryblok {
   heading2?: string;
   cta?: string;
   _uid: string;
-  component: "landing";
+  component: 'landing';
   [k: string]: any;
 }
 
@@ -216,19 +216,19 @@ export interface MenuStoryblok {
   )[];
   legal_copyright?: string;
   _uid: string;
-  component: "menu";
+  component: 'menu';
   [k: string]: any;
 }
 
 export interface NoJavascriptStoryblok {
   _uid: string;
-  component: "no_javascript";
+  component: 'no_javascript';
   [k: string]: any;
 }
 
 export interface NotFoundStoryblok {
   _uid: string;
-  component: "not_found";
+  component: 'not_found';
   [k: string]: any;
 }
 
@@ -237,37 +237,37 @@ export interface OpengraphStoryblok {
   description?: string;
   image?: AssetStoryblok;
   _uid: string;
-  component: "opengraph";
+  component: 'opengraph';
   [k: string]: any;
 }
 
 export interface PolicyLinkStoryblok {
-  link?: Exclude<MultilinkStoryblok, {linktype?: "email"} | {linktype?: "asset"}>;
+  link?: Exclude<MultilinkStoryblok, { linktype?: 'email' } | { linktype?: 'asset' }>;
   _uid: string;
-  component: "policy_link";
+  component: 'policy_link';
   [k: string]: any;
 }
 
 export interface ProjectStoryblok {
   heading?: string;
   image?: AssetStoryblok;
-  link?: Exclude<MultilinkStoryblok, {linktype?: "email"} | {linktype?: "asset"}>;
-  topic?: ("" | "web" | "app" | "experiential" | "spatial")[];
+  link?: Exclude<MultilinkStoryblok, { linktype?: 'email' } | { linktype?: 'asset' }>;
+  topic?: ('' | 'web' | 'app' | 'experiential' | 'spatial')[];
   _uid: string;
-  component: "project";
+  component: 'project';
   [k: string]: any;
 }
 
 export interface RotateDeviceStoryblok {
   _uid: string;
-  component: "rotate_device";
+  component: 'rotate_device';
   [k: string]: any;
 }
 
 export interface ServiceStoryblok {
   heading?: string;
   _uid: string;
-  component: "service";
+  component: 'service';
   [k: string]: any;
 }
 
@@ -276,13 +276,13 @@ export interface ServicesStoryblok {
   body?: string;
   services?: ServiceStoryblok[];
   _uid: string;
-  component: "services";
+  component: 'services';
   [k: string]: any;
 }
 
 export interface WindowTooSmallStoryblok {
   _uid: string;
-  component: "window_too_small";
+  component: 'window_too_small';
   [k: string]: any;
 }
 
@@ -291,6 +291,6 @@ export interface WorkStoryblok {
   projects?: ProjectStoryblok[];
   cta?: string;
   _uid: string;
-  component: "work";
+  component: 'work';
   [k: string]: any;
 }
