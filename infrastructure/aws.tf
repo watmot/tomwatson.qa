@@ -110,3 +110,132 @@ module "distribution" {
   viewer_request_lambda_arn = module.lambda_viewer_request[each.key].lambda_arn
   origin_request_lambda_arn = module.lambda_origin_request[each.key].lambda_arn
 }
+
+##########################
+### CMS Webhook Lambda ###
+##########################
+
+# Lambda IAM
+data "aws_iam_policy_document" "cms_lambda_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "cms_lambda_role" {
+  name               = "${local.project_name}-cms-webhook-lambda-role"
+  assume_role_policy = data.aws_iam_policy_document.cms_lambda_assume_role.json
+}
+
+data "aws_iam_policy_document" "cms_lambda_policy" {
+  # CodePipeline
+  statement {
+     effect = "Allow"
+
+     actions = [
+      "codepipeline:StartPipelineExecution"
+     ]
+
+     resources = [for arn in module.build.codepipeline_arns : arn]
+  }
+
+  # Logs
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup",
+      "logs:PutLogEvents"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "cms_lambda_policy" {
+  name   = "${local.project_name}-cms-webhook-lambda-policy"
+  role   = aws_iam_role.cms_lambda_role.id
+  policy = data.aws_iam_policy_document.cms_lambda_policy.json
+}
+
+# Lambda
+
+data "archive_file" "cms_lambda" {
+  type        = "zip"
+  source_file = "./lambdas/cms_webhook/index.mjs"
+  output_path = "lambdas/cms_webhook.zip"
+}
+
+resource "aws_lambda_function" "cms_lambda" {
+  filename         = data.archive_file.cms_lambda.output_path
+  function_name    = "${local.project_name}-cms-webhook"
+  role             = aws_iam_role.cms_lambda_role.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  publish          = true
+  source_code_hash = data.archive_file.cms_lambda.output_base64sha256
+
+  environment {
+    variables = {
+      CODEPIPELINE_IDS = jsonencode(module.build.codepipeline_ids)
+    }
+  }
+}
+
+# API Route
+
+resource "aws_apigatewayv2_api" "root" {
+  name          = "${local.project_name}-http-api"
+  protocol_type = "HTTP"
+}
+
+resource "aws_apigatewayv2_stage" "root" {
+  api_id      = aws_apigatewayv2_api.root.id
+  name        = "main"
+  auto_deploy = true
+}
+
+resource "aws_apigatewayv2_deployment" "root" {
+  api_id = aws_apigatewayv2_api.root.id
+
+  triggers = {
+    redeployment = sha1(join(",", tolist([
+      jsonencode(aws_apigatewayv2_integration.cms),
+      jsonencode(aws_apigatewayv2_route.cms),
+    ])))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lambda_permission" "apigw_lambda_permission" {
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.cms_lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.root.execution_arn}/*"
+}
+
+resource "aws_apigatewayv2_integration" "cms" {
+  api_id             = aws_apigatewayv2_api.root.id
+  integration_type   = "AWS_PROXY"
+  connection_type    = "INTERNET"
+  integration_method = "POST"
+  integration_uri    = aws_lambda_function.cms_lambda.invoke_arn
+}
+
+resource "aws_apigatewayv2_route" "cms" {
+  api_id    = aws_apigatewayv2_api.root.id
+  route_key = "POST /cms"
+  target    = "integrations/${aws_apigatewayv2_integration.cms.id}"
+}
+

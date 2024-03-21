@@ -4,3 +4,10 @@ output "s3_build_bucket_ids" {
   }
   description = "Map of the build environments and corresponding bucket names ({env: name})."
 }
+
+output "codepipeline_arns" {
+  value = [for v in aws_codepipeline.website : v.arn]
+}
+output "codepipeline_ids" {
+  value = [for v in aws_codepipeline.website : v.name]
+}
