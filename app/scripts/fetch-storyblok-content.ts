@@ -31,9 +31,6 @@ type StoryContent =
 
 interface ParsedStory {
   uuid: string;
-  name: string;
-  slug: string;
-  full_slug: string;
   content: StoryContent;
 }
 
@@ -43,8 +40,8 @@ interface ParsedContent {
 
 const parseContent = (stories: StoryblokStory<StoryContent>[]) => {
   return stories.reduce<ParsedContent>((acc, story) => {
-    const { uuid, name, slug, full_slug, content } = story;
-    acc[full_slug] = { uuid, name, slug, full_slug, content };
+    const { uuid, full_slug, content } = story;
+    acc[full_slug] = { uuid, content };
     return acc;
   }, {} as ParsedContent);
 };
