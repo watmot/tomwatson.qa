@@ -30,7 +30,7 @@ class Service {
   getPageContent(pageId: PageId) {
     const page = mappedContent.pages[pageId];
     const common = mappedContent.common;
-
+    console.log(mappedContent.pages.home.landing.content);
     return { page, common };
   }
 }

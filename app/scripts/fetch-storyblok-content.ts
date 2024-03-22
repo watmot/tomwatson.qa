@@ -1,52 +1,37 @@
 import 'dotenv/config';
 
-import {
-  ContactStoryblok,
-  IntroStoryblok,
-  LandingStoryblok,
-  MenuStoryblok,
-  NoJavascriptStoryblok,
-  NotFoundStoryblok,
-  ServicesStoryblok,
-  WorkStoryblok
-} from 'types/storyblok';
-import { apiPlugin, storyblokInit } from '@storyblok/js';
+import { ISbStoryData, apiPlugin, storyblokInit } from '@storyblok/js';
 
-import { StoryblokStory } from 'storyblok-generate-ts';
 import { flatten } from 'flat';
 import fs from 'fs';
 import path from 'path';
 
 const name = 'scripts/fetch-storyblok-content';
 
-type StoryContent =
-  | LandingStoryblok
-  | IntroStoryblok
-  | WorkStoryblok
-  | ServicesStoryblok
-  | ContactStoryblok
-  | MenuStoryblok
-  | NoJavascriptStoryblok
-  | NotFoundStoryblok;
+interface SbContent {
+  _uid?: string;
+  component?: string;
+  _editable?: string;
+  [key: string]: any;
+}
 
 interface ParsedStory {
   uuid: string;
-  content: StoryContent;
+  content: SbContent;
 }
-
-interface ParsedContent {
+interface Content {
   [key: string]: ParsedStory;
 }
 
-const parseContent = (stories: StoryblokStory<StoryContent>[]) => {
-  return stories.reduce<ParsedContent>((acc, story) => {
+const parseContent = (stories: ISbStoryData[]) => {
+  return stories.reduce<Content>((acc, story) => {
     const { uuid, full_slug, content } = story;
     acc[full_slug] = { uuid, content };
     return acc;
-  }, {} as ParsedContent);
+  }, {} as Content);
 };
 
-const getAssetBinaries = (content: ParsedContent) => {
+const getAssetBinaries = (content: Content) => {
   const values = Object.values(flatten(content)) as string[];
   const filtered = [
     ...new Set(
@@ -60,7 +45,7 @@ const getAssetBinaries = (content: ParsedContent) => {
 };
 
 interface WriteJsonFile {
-  content: string[] | ParsedContent;
+  content: string[] | Content;
   outputDir?: string;
   filename: string;
 }
