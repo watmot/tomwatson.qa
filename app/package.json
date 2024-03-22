@@ -6,7 +6,7 @@
     "dev": "run-p dev:*",
     "dev:next": "npm run scripts && next dev",
     "dev:storybook": "storybook dev -p 6006",
-    "build:next": "next build",
+    "build:next": "npm run scripts && next build",
     "build:storybook": "storybook build -o ./out/storybook -c .storybook",
     "postbuild:storybook": "perl -i -p -e 's#<head>#<head>\n\t\t<base href='/storybook/'>#' ./out/storybook/index.html",
     "start": "serve ./out",
