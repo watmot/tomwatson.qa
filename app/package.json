@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "run-s dev:*",
+    "dev": "run-p dev:*",
     "dev:next": "npm run scripts && next dev",
     "dev:storybook": "storybook dev -p 6006",
     "build:next": "next build",
@@ -32,6 +32,7 @@
     "classnames": "^2.5.1",
     "dotenv": "^16.4.5",
     "flat": "^6.0.1",
+    "gsap": "^3.12.5",
     "next": "^13.5.6",
     "next-videos": "^1.4.1",
     "normalize.css": "^8.0.1",

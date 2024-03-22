@@ -1,3 +1,6 @@
+@import 'shared';
+
 html {
-  font-size: calc(100vw / 1920 * 10);
+  background-color: $color-gondola;
+  font-size: calc(100vw / $design-width-desktop * 10);
 }

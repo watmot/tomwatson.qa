@@ -21,7 +21,7 @@ class Service {
   }
 
   private updateProgress() {
-    console.log(`${this.totalFilesLoaded}/${this.totalFilesToLoad}`);
+    console.log(`Preloaded ${this.totalFilesLoaded}/${this.totalFilesToLoad} files.`);
     const currProgress = Math.min(
       100,
       Math.floor((this.totalFilesLoaded / this.totalFilesToLoad) * 100)
