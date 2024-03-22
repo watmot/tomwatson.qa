@@ -70,6 +70,15 @@ resource "aws_ssm_parameter" "build_environment" {
   value = each.key
 }
 
+resource "aws_secretsmanager_secret" "storyblok_token" {
+  name = "${var.project_name}-storyblok-token"
+}
+
+resource "aws_secretsmanager_secret_version" "storyblok_token" {
+  secret_id     = aws_secretsmanager_secret.storyblok_token.id
+  secret_string = var.storyblok_token
+}
+
 ##########################
 ### CodeStarConnection ###
 ##########################
@@ -176,6 +185,12 @@ resource "aws_codebuild_project" "build" {
       name  = "NEXT_PUBLIC_BUILD_ENVIRONMENT"
       type  = "PARAMETER_STORE"
       value = "${var.project_name}-${each.key}-build-environment"
+    }
+
+    environment_variable {
+      name = "STORYBLOK_TOKEN"
+      type = "SECRETS_MANAGER"
+      value = "${var.project_name}-storyblok-token"
     }
   }
 }

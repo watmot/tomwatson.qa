@@ -25,6 +25,7 @@ module "build" {
   repository_id                = var.repository_id
   cloudfront_distribution_ids  = { for k, v in module.distribution : k => v.cloudfront_distribution_id }
   cloudfront_distribution_arns = { for k, v in module.distribution : k => v.cloudfront_distribution_arn }
+  storyblok_token              = var.storyblok_token
 }
 
 #######################

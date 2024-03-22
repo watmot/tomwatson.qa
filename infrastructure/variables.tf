@@ -13,3 +13,8 @@ variable "build_environments" {
   }))
   description = "List of build environments."
 }
+
+variable "storyblok_token" {
+  type = string
+  description = "Access token for Storyblok."
+}

@@ -30,3 +30,8 @@ variable "cloudfront_distribution_ids" {
 variable "cloudfront_distribution_arns" {
   description = "ARNs of the Cloudfront distributions."
 }
+
+variable "storyblok_token" {
+  type = string
+  description = "Access token for Storyblok."
+}
