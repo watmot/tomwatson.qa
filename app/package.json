@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev:next": "next dev",
+    "dev": "run-s dev:*",
+    "dev:next": "npm run scripts && next dev",
     "dev:storybook": "storybook dev -p 6006",
     "build:next": "next build",
     "build:storybook": "storybook build -o ./out/storybook -c .storybook",
