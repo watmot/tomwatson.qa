@@ -9,6 +9,7 @@
   position: absolute;
   top: 0;
   width: 100vw;
+  z-index: z('preloader');
 
   .wrapper {
     align-items: center;
