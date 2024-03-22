@@ -140,6 +140,15 @@ data "aws_iam_policy_document" "codebuild_build" {
 
     resources = [aws_ssm_parameter.build_environment[each.key].arn]
   }
+
+  statement {
+    effect = "Allow"
+
+    actions = ["secretsmanager:GetSecretValue"]
+
+    resources = [aws_secretsmanager_secret.storyblok_token.arn]
+  }
+  
   statement {
     effect = "Allow"
 
