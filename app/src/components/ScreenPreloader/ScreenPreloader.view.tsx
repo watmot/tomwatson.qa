@@ -31,7 +31,7 @@ export const View: FC<ViewProps> = ({ progress }) => {
     if (loaded) {
       timeline = gsap
         .timeline()
-        .to(crossRef.current, { width: '50%', ease: 'sine.out' })
+        .to(crossRef.current, { width: '50%', delay: 0.75, ease: 'sine.out' })
         .to(loadingBarRef.current, { height: '100%', duration: 0.5, ease: 'sine.in' })
         .to(loadingBarRef.current, { width: '100%', duration: 0.5, ease: 'sine.in' })
         .set(preloaderRef.current, { autoAlpha: 0 });
