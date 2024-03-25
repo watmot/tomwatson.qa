@@ -1,5 +1,5 @@
 describe('Preload', () => {
-  it('should preload all binaries hide the preloader once complete', () => {
+  it('should preload all binaries and hide the preloader once complete', () => {
     cy.intercept('GET', '/_next/static/media/*').as('assetBinaries');
     cy.intercept({ hostname: 's3.amazonaws.com' }).as('storyblokBinaries');
 

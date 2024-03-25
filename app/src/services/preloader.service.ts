@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from 'react';
 
 import axios from 'axios';
 import storyblokBinaries from '@/data/storyblok-asset-binaries.json';
+import { toTitleCase } from '@/utils/string';
 
 type PreloadedFile = null | string;
 
@@ -50,22 +51,38 @@ class Service {
     if (this.files[url]) return this.files[url];
 
     const file = new Promise<PreloadedFile>((resolve) => {
-      axios
-        .get(url)
-        .then(() => {
-          resolve(url);
-        })
-        .catch((err) => {
-          console.error(err);
-          resolve(null);
-        })
-        .finally(() => {
-          this.totalFilesLoaded++;
-          this.updateProgress();
-        });
+      const fontMatch = url.match(/([a-z]+)-*([0-9]*)\..*(woff|woff2)$/i);
+      if (fontMatch) {
+        const name = toTitleCase(fontMatch[1]);
+        const weight = fontMatch[2];
+        const font = new FontFace(name, `url(${url})`, { weight });
+        font
+          .load()
+          .then(() => {
+            document.fonts.add(font);
+            resolve(url);
+          })
+          .catch((err) => {
+            console.error(err);
+            resolve(null);
+          });
+      } else {
+        axios
+          .get(url, { responseType: 'blob' })
+          .then(() => {
+            resolve(url);
+          })
+          .catch((err) => {
+            console.error(err);
+            resolve(null);
+          });
+      }
     });
 
-    this.files[url] = file;
+    this.files[url] = file.finally(() => {
+      this.totalFilesLoaded++;
+      this.updateProgress();
+    });
   }
 }
 

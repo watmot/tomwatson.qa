@@ -6,5 +6,9 @@ module.exports = withVideos({
   output: 'export',
   sassOptions: {
     includePaths: [path.join(__dirname, 'src/styles')]
+  },
+  webpack(config) {
+    config.module.rules.push({ test: /\.(woff|woff2)$/iu, type: 'asset/resource' });
+    return config;
   }
 });
